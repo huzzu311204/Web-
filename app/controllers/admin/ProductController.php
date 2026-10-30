@@ -269,3 +269,4 @@ class ProductController
         return [$old, $specs, $errors];
     }
 }
+

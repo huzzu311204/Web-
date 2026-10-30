@@ -2,7 +2,7 @@
 
 - **Dự án:** Website quản lý sản phẩm & tồn kho thiết bị chụp ảnh (ProGear Studio)
 - **Thư mục mã nguồn:** `C:\xampp\htdocs\camera-rental`
-- **Commit GitHub:** `78f0ea8` (`refactor: remove rental module, update schema to camera_store_db and add centralized route guard`)
+- **Repository GitHub:** `https://github.com/huzzu311204/Web-.git` (nhánh `main`)
 - **Ngày hoàn thành:** 30/10/2026
 
 ---
@@ -10,11 +10,13 @@
 ## 1. Mục tiêu của Giai đoạn 0
 
 Giai đoạn 0 thực hiện đầy đủ **Phụ lục A** và **Mục 11 (Bảo mật & Chất lượng dữ liệu)** trong tài liệu đặc tả dự án:
-1. Chuyển đổi cơ sở dữ liệu từ mô hình cho thuê (11 bảng) sang mô hình **Quản lý sản phẩm và tồn kho (`camera_store_db` — 9 bảng)**, giữ nguyên 100% tên cột của 6 bảng gốc.
+1. Chuyển đổi cơ sở dữ liệu sang mô hình **Quản lý sản phẩm và tồn kho (`camera_store_db` — 9 bảng)**, giữ nguyên 100% tên cột của 6 bảng gốc.
 2. Loại bỏ toàn bộ các bảng, controller, view và route liên quan đến cho thuê/gia hạn và bỏ trang Dashboard biểu đồ/thẻ số liệu.
 3. Xây dựng cơ chế **kiểm soát bảo mật tập trung tại Router** (`auth`, `method`, `ajax` và kiểm tra CSRF tự động cho mọi request `POST`).
 4. Vá các điểm bảo mật trọng yếu: chống dò tên đăng nhập (timing attack), giới hạn số lần đăng nhập sai liên tiếp, đối chiếu trạng thái tài khoản `ACTIVE` trong DB trên mỗi request, chống Open Redirect khi lỗi CSRF, ẩn thông báo lỗi nhạy cảm và chặn truy cập thư mục nội bộ bằng `.htaccess`.
-5. Chuẩn hóa giao diện theo `MASTER.md`: dùng duy nhất 1 font sans-serif **Be Vietnam Pro** (bật `tabular-nums` cho số liệu), đổi sang bộ **4 badge tồn kho** và đưa cảnh báo sắp hết/hết hàng lên Sidebar Admin.
+5. Chuẩn hóa giao diện theo `MASTER.md`:
+   - Tách biệt hoàn toàn giao diện **Khách hàng** (`app/views/layouts/front.php` — không chứa nút/link Quản trị) và giao diện **Quản trị viên** (`app/views/layouts/admin.php`).
+   - Dùng duy nhất 1 font sans-serif **Be Vietnam Pro** (bật `tabular-nums` cho số liệu), đổi sang bộ **4 badge tồn kho** và đưa cảnh báo sắp hết/hết hàng lên Sidebar Admin.
 
 ---
 
@@ -38,8 +40,8 @@ Giai đoạn 0 thực hiện đầy đủ **Phụ lục A** và **Mục 11 (Bả
   8. `import_receipt_details` *(bảng gốc)*: `id`, `receipt_id`, `product_id`, `quantity`, `import_price`, `subtotal` (đã trả lại đúng tên cột gốc `receipt_id` và `import_price`).
   9. `stock_logs` *(bảng mới)*: `id`, `product_id`, `user_id`, `type` (`IMPORT`, `EXPORT`, `ADJUSTMENT`), `change_qty`, `quantity_before`, `quantity_after`, `reason`, `receipt_id`, `created_at`. Có index `idx_stock_logs_product_date (product_id, created_at)`.
 
-- **Dữ liệu mẫu (`SEED DATA`):**
-  - Tài khoản Admin duy nhất: `admin` / mật khẩu `ProGear@2026!` (sử dụng bcrypt hash mới tạo riêng, không dùng hash mẫu phổ biến trên mạng, đã kiểm tra bằng `password_verify()`).
+- **Dữ liệu mẫu (`SEED DATA` — Đã nạp vào MySQL với chuẩn `utf8mb4`):**
+  - Tài khoản Admin duy nhất: `admin` / mật khẩu `ProGear@2026!` (sử dụng bcrypt hash tạo riêng, đã kiểm tra bằng `password_verify()`).
   - 28 sản phẩm thiết bị nhiếp ảnh thật trải đều 6 danh mục, bao gồm đủ 4 trạng thái để demo:
     - **Hết hàng (`quantity = 0`):** Canon EOS R5 (`id = 5`), Canon RF 50mm f/1.2L (`id = 16`).
     - **Sắp hết (`0 < quantity <= min_stock`):** Sony Alpha A7 Mark IV (`id = 2`, tồn 2 / ngưỡng 2), Sony FE 70-200mm GM (`id = 12`, tồn 1 / ngưỡng 2), Gimbal DJI RS 3 Pro (`id = 24`, tồn 1 / ngưỡng 2).
@@ -91,14 +93,13 @@ Giai đoạn 0 thực hiện đầy đủ **Phụ lục A** và **Mục 11 (Bả
 - **`app/core/UiHelper.php`:**
   - Cài đặt `UiHelper::stockState()`, `UiHelper::stockBadge()`, `UiHelper::productStatusBadge()`, `UiHelper::stockLogTypeBadge()`, `UiHelper::productRowClass()` và `UiHelper::formatReceiptCode()` (`PN-000001`).
 - **`app/views/layouts/front.php` & `app/views/layouts/admin.php`:**
-  - Navbar khách hàng hiển thị nút **So sánh** kèm bộ đếm số lượng (`#navbar-compare-count`).
-  - Sidebar Admin bỏ mục Dashboard và Đơn thuê; bổ sung mục **Lịch sử tồn kho** (`admin/stock-logs`) và hiển thị trực tiếp badge số lượng sản phẩm sắp hết/hết hàng cạnh mục **Sản phẩm**.
+  - **Layout khách hàng (`front.php`)**: Hoàn toàn tách biệt với khu vực quản trị, chỉ hiển thị Logo, Ô tìm kiếm, *Trang chủ*, *Danh mục thiết bị* và nút *So sánh* kèm bộ đếm số lượng (`#navbar-compare-count`).
+  - **Sidebar Admin (`admin.php`)**: Bỏ mục Dashboard và Đơn thuê; bổ sung mục **Lịch sử tồn kho** (`admin/stock-logs`) và hiển thị trực tiếp badge số lượng sản phẩm sắp hết/hết hàng cạnh mục **Sản phẩm**.
 
 ---
 
 ## 3. Kiểm tra nghiệm thu Giai đoạn 0
 
-1. **Kiểm tra cú pháp PHP (`php -l`):** Toàn bộ 18 file PHP trong dự án đều báo `No syntax errors detected`.
+1. **Kiểm tra cú pháp PHP (`php -l`):** Toàn bộ các file PHP trong dự án đều báo `No syntax errors detected`.
 2. **Kiểm tra tính toàn vẹn tồn kho trong `schema.sql` (`TC20`):** Tổng `SUM(change_qty)` trong `stock_logs` của cả 28 sản phẩm khớp chính xác 100% với cột `quantity` trong bảng `products`.
 3. **Đồng bộ GitHub:** Đã commit và push lên nhánh `main` tại `https://github.com/huzzu311204/Web-`.
-

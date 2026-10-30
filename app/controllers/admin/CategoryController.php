@@ -122,3 +122,4 @@ class CategoryController
         Response::redirect('index.php?r=admin/categories');
     }
 }
+

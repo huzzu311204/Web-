@@ -3,13 +3,11 @@ declare(strict_types=1);
 
 use App\Core\Response;
 use App\Core\Csrf;
-use App\Core\Auth;
 
 $currentRoute = (string) ($_GET['r'] ?? 'home');
 $compareIds = $_SESSION['compare_ids'] ?? [];
 $compareCount = is_array($compareIds) ? count($compareIds) : 0;
 $flashes = Response::getFlashes();
-$adminUser = Auth::user();
 ?>
 <!DOCTYPE html>
 <html lang="vi" data-bs-theme="dark">
@@ -65,14 +63,6 @@ $adminUser = Auth::user();
                             <span id="navbar-compare-count" class="counter-badge ms-1" aria-live="polite"><?= (int) $compareCount ?></span>
                         </a>
                     </li>
-                    <?php if ($adminUser): ?>
-                        <li class="nav-item ms-lg-2">
-                            <a class="btn btn-outline-secondary btn-sm" href="index.php?r=admin/products" title="Vào khu vực quản trị">
-                                <i class="bi bi-shield-lock" aria-hidden="true"></i>
-                                <span>Quản trị</span>
-                            </a>
-                        </li>
-                    <?php endif; ?>
                 </ul>
             </div>
         </div>
@@ -142,12 +132,10 @@ $adminUser = Auth::user();
                         <li><a href="index.php?r=catalog" class="text-muted text-decoration-none">Tất cả thiết bị</a></li>
                         <li><a href="index.php?r=catalog&stock=in_stock" class="text-muted text-decoration-none">Sản phẩm đang còn hàng</a></li>
                         <li><a href="index.php?r=compare" class="text-muted text-decoration-none">Bảng so sánh thông số</a></li>
-                        <li><a href="index.php?r=admin/login" class="text-muted text-decoration-none">Khu vực Quản trị viên</a></li>
                     </ul>
                 </div>
             </div>
-            <hr class
-            ="border-secondary my-4">
+            <hr class="border-secondary my-4">
             <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center text-muted small">
                 <span>&copy; <?= date('Y') ?> ProGear Studio. Bài thực hành Lập trình Web (Bài TH3).</span>
                 <span>Quản lý sản phẩm & tồn kho chính xác với PDO Transaction.</span>

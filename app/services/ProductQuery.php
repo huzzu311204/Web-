@@ -218,3 +218,4 @@ class ProductQuery
         return [$whereSql, $params];
     }
 }
+

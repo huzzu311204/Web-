@@ -22,3 +22,4 @@ if (($pages ?? 1) > 1): ?>
         </ul>
     </nav>
 <?php endif; ?>
+

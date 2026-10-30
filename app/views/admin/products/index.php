@@ -246,3 +246,4 @@ $currentStockFilter = strtolower(trim((string) ($filters['stock'] ?? '')));
         </div>
     </div>
 </div>
+

@@ -89,3 +89,4 @@ class BrandController
         Response::redirect('index.php?r=admin/brands');
     }
 }
+

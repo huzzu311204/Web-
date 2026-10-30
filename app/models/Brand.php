@@ -79,3 +79,4 @@ class Brand
         return $stmt->execute(['id' => $id]);
     }
 }
+

@@ -147,3 +147,4 @@ class Category
         return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
     }
 }
+

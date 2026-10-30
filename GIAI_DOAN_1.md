@@ -1,17 +1,18 @@
-# Báo cáo chi tiết Giai đoạn 1: CRUD Quản trị & AJAX Phía Admin (Nền 5 điểm)
+# Báo cáo chi tiết Giai đoạn 1: CRUD Quản trị, AJAX Phía Admin & Trang chủ Khách
 
 - **Dự án:** Website quản lý sản phẩm & tồn kho thiết bị chụp ảnh (ProGear Studio)
 - **Thư mục mã nguồn:** `C:\xampp\htdocs\camera-rental`
+- **Repository GitHub:** `https://github.com/huzzu311204/Web-.git` (nhánh `main`)
 - **Ngày hoàn thành:** 30/10/2026
 
 ---
 
 ## 1. Mục tiêu của Giai đoạn 1
 
-Hoàn thành toàn bộ phần **CRUD bắt buộc (5 điểm)** và các tương tác **AJAX phía Admin** theo Mục 5.2, Mục 6 và Mục 12 của tài liệu đặc tả:
+Hoàn thành toàn bộ phần **CRUD bắt buộc (5 điểm)**, các tương tác **AJAX phía Admin** và **Trang chủ khách hàng (`K1`)** theo Mục 5, Mục 6 và Mục 12 của tài liệu đặc tả:
 1. **CRUD Sản phẩm (`A2`, `A5`, `A7`, `A8`):**
    - Danh sách sản phẩm Admin có tìm kiếm, lọc theo danh mục/thương hiệu/tình trạng tồn/trạng thái, sắp xếp, phân trang chạy bằng AJAX (`api/admin/products`).
-   - Tô màu dòng sản phẩm **Hết hàng** (viền đỏ) và **Sắp hết** (viền vàng), có nút lọc nhanh *"Sắp hết / Hết hàng"*.
+   - Tô màu dòng sản phẩm **Hết hàng** (viền đỏ `#f87171`) và **Sắp hết** (viền vàng `#facc15`), có nút lọc nhanh *"Sắp hết / Hết hàng"*.
    - Thêm / Sửa sản phẩm kèm **danh sách thông số kỹ thuật động** (`product_specs`), tự động ghi `stock_logs` *"Tồn đầu kỳ"* trong cùng transaction khi tạo mới có số lượng > 0.
    - Kiểm tra mã SKU trùng tức thì bằng AJAX (`api/admin/sku-check`, debounce 300ms) và kiểm tra lại ở backend khi lưu (`TC02`).
    - Upload ảnh an toàn bằng `ImageUploader` (`finfo` + `getimagesize()`, chỉ nhận `jpg`, `png`, `webp` tối đa 2 MB, từ chối `svg` và file giả mạo - `TC25`).
@@ -21,6 +22,11 @@ Hoàn thành toàn bộ phần **CRUD bắt buộc (5 điểm)** và các tươn
 2. **CRUD Danh mục (`A3`):** Cây danh mục phân cấp (`parent_id`), hiển thị số sản phẩm thuộc danh mục, chặn xóa khi còn sản phẩm hoặc danh mục con (`TC04`).
 3. **CRUD Thương hiệu (`A3`):** Thêm, sửa, xóa qua modal, hiển thị số sản phẩm, chặn xóa khi còn sản phẩm tham chiếu (`TC04`).
 4. **CRUD Nhà cung cấp (`A3`):** Thêm, sửa, xóa qua modal, validate SĐT Việt Nam và email, chặn xóa khi còn sản phẩm hoặc phiếu nhập tham chiếu.
+5. **Trang chủ Khách hàng (`K1` — `index.php?r=home`):**
+   - Hero bất đối xứng theo đúng `MASTER.md` Mục 3.1 (nửa trái là tiêu đề + 1 nút chính *"Xem toàn bộ sản phẩm"*, nửa phải là sản phẩm nổi bật; tách biệt hoàn toàn, không chứa nút Quản trị).
+   - Lưới danh mục thiết bị kèm số lượng sản phẩm.
+   - Danh sách thiết bị mới cập nhật kèm 3 thông số chính (`product_specs`) và nhãn trạng thái tồn kho.
+   - Khu vực *Sản phẩm đã xem gần đây* đọc từ `$_SESSION['recent_viewed']`.
 
 ---
 
@@ -41,17 +47,20 @@ Hoàn thành toàn bộ phần **CRUD bắt buộc (5 điểm)** và các tươn
 | | `app/controllers/admin/BrandController.php` | Xử lý hiển thị, thêm/sửa và xóa thương hiệu. |
 | | `app/controllers/admin/SupplierController.php` | Xử lý hiển thị, thêm/sửa và xóa nhà cung cấp. |
 | | `app/controllers/api/AdminProductApi.php` | 4 endpoint AJAX Admin: `api/admin/products`, `api/admin/sku-check`, `api/admin/product-inline`, `api/admin/product-action`. |
+| | `app/controllers/storefront/HomeController.php` | Trang chủ khách hàng (`index.php?r=home`) hiển thị Hero thiết bị, lưới danh mục, sản phẩm mới cập nhật và lịch sử đã xem. |
 | **Views & JS** | `app/views/admin/products/index.php`, `_table_rows.php`, `_pagination.php`, `form.php` | Giao diện danh sách sản phẩm Admin (có ô sửa nhanh, modal xóa, modal xuất/điều chỉnh kho) và form thêm/sửa sản phẩm có thêm/bớt dòng thông số kỹ thuật động. |
 | | `app/views/admin/categories/index.php` | Giao diện cây danh mục + form thêm/sửa + modal xác nhận xóa. |
 | | `app/views/admin/brands/index.php` | Giao diện thương hiệu + form thêm/sửa + modal xác nhận xóa. |
 | | `app/views/admin/suppliers/index.php` | Giao diện nhà cung cấp + form thêm/sửa + modal xác nhận xóa. |
+| | `app/views/storefront/home/index.php` | Giao diện trang chủ khách hàng sạch sẽ, tách biệt hoàn toàn với khu vực Admin. |
 | | `public/js/admin-products.js` | Xử lý AJAX lọc/tìm kiếm/phân trang Admin, kiểm tra SKU trùng, sửa nhanh tại bảng (khôi phục giá trị cũ nếu lỗi), xóa sản phẩm và thêm/bớt dòng thông số. |
 
 ---
 
 ## 3. Kiểm tra nghiệm thu Giai đoạn 1
 
-- **Kiểm tra cú pháp (`php -l`):** Tất cả 37 file PHP trong dự án đều hợp lệ (`No syntax errors detected`).
+- **Kiểm tra cú pháp (`php -l`):** Tất cả 39 file PHP trong dự án đều hợp lệ (`No syntax errors detected`).
+- **Cơ sở dữ liệu MySQL (`camera_store_db`):** Đã import đầy đủ với `--default-character-set=utf8mb4`, hiển thị tiếng Việt có dấu chuẩn xác 100% trên cả trang Khách và trang Quản trị.
 - **Đáp ứng các Test Case trong Kế hoạch kiểm thử (Mục 13):**
   - `TC01`, `TC02`, `TC03`: Thêm/sửa sản phẩm, báo trùng SKU bằng AJAX + backend, validate độ dài chuỗi và số không âm.
   - `TC04`, `TC05`, `TC06`: Chặn xóa danh mục/thương hiệu/nhà cung cấp đang có sản phẩm; xóa mềm (`INACTIVE`) sản phẩm đã có lịch sử kho; xóa cứng + xóa ảnh sản phẩm chưa có lịch sử.
