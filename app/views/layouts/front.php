@@ -146,7 +146,8 @@ $adminUser = Auth::user();
                     </ul>
                 </div>
             </div>
-            <hr class="border-secondary my-4">
+            <hr class
+            ="border-secondary my-4">
             <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center text-muted small">
                 <span>&copy; <?= date('Y') ?> ProGear Studio. Bài thực hành Lập trình Web (Bài TH3).</span>
                 <span>Quản lý sản phẩm & tồn kho chính xác với PDO Transaction.</span>
