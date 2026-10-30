@@ -1,0 +1,74 @@
+/* ==========================================================================
+   PRINT.CSS — Bản in phiếu thuê thiết bị A4 (Mục 4.2 & 6)
+   Nền trắng, chữ đen, ẩn các phần tử điều hướng và nút bấm
+   ========================================================================== */
+
+body.print-body {
+  background-color: #ffffff !important;
+  color: #111111 !important;
+  font-family: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.print-sheet {
+  max-width: 210mm;
+  margin: 24px auto;
+  padding: 32px 40px;
+  background: #ffffff;
+  color: #111111;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+}
+
+.print-sheet h1,
+.print-sheet h2,
+.print-sheet h3,
+.print-sheet h4,
+.print-sheet p,
+.print-sheet th,
+.print-sheet td {
+  color: #111111 !important;
+}
+
+.print-sheet .table {
+  border-color: #111111 !important;
+}
+
+.print-sheet .table th,
+.print-sheet .table td {
+  border: 1px solid #374151 !important;
+  padding: 8px 10px;
+  background: transparent !important;
+}
+
+.print-sheet .num,
+.print-sheet .price,
+.print-sheet .code {
+  font-family: 'JetBrains Mono', monospace;
+  font-variant-numeric: tabular-nums;
+  color: #111111 !important;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  html,
+  body,
+  body.print-body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .print-sheet {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 12mm !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+}

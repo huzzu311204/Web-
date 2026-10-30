@@ -1,0 +1,569 @@
+/* ==========================================================================
+   THEME.CSS — Camera Rental (ProGear Studio)
+   Nguồn chuẩn duy nhất: design-system/camera-rental/MASTER.md
+   ========================================================================== */
+
+:root,
+[data-bs-theme="dark"] {
+  --bs-body-font-family: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
+  --bs-body-font-size: 1rem;
+  --bs-body-line-height: 1.5;
+  --bs-body-bg: #131416;
+  --bs-body-bg-rgb: 19, 20, 22;
+  --bs-body-color: #e6e4df;
+  --bs-body-color-rgb: 230, 228, 223;
+  --bs-border-color: #2a2c30;
+  --bs-border-radius: 6px;
+  --bs-border-radius-sm: 6px;
+  --bs-border-radius-lg: 6px;
+  --bs-border-radius-xl: 6px;
+  --bs-primary: #f0a23b;
+  --bs-primary-rgb: 240, 162, 59;
+  --bs-link-color: #f0a23b;
+  --bs-link-hover-color: #f5b45c;
+
+  --surface-elevated: #1b1d21;
+  --surface-input: #17191c;
+  --surface-image: #0f1012;
+  --text-muted: #9ca3af;
+  --accent-hover: #f5b45c;
+  --btn-primary-text: #14110b;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* --------------------------------------------------------------------------
+   1. Base & Typography (Mục 2.1, 2.4, 2.5)
+   -------------------------------------------------------------------------- */
+html,
+body {
+  background-color: var(--bs-body-bg);
+  color: var(--bs-body-color);
+  font-family: var(--bs-body-font-family);
+  font-size: 16px;
+  line-height: 1.5;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, .h1 { font-size: 2rem; font-weight: 700; line-height: 1.25; color: var(--bs-body-color); }
+h2, .h2 { font-size: 1.5rem; font-weight: 600; line-height: 1.3; color: var(--bs-body-color); }
+h3, .h3 { font-size: 1.25rem; font-weight: 600; line-height: 1.35; color: var(--bs-body-color); }
+h4, .h4 { font-size: 1.125rem; font-weight: 600; color: var(--bs-body-color); }
+
+.text-muted,
+.text-secondary {
+  color: var(--text-muted) !important;
+}
+
+.num,
+.price,
+.code {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+.price {
+  color: var(--bs-primary);
+  font-weight: 600;
+}
+
+/* Chiều rộng nội dung tối đa 1200px cho khu vực khách */
+.container-studio {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+/* Một cột nội dung tối đa 800px cho Giỏ thuê, Tra cứu đơn, Chính sách */
+.container-narrow {
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Focus ring rõ ràng bằng màu hổ phách (Mục 2.5 & 5.1) */
+:focus-visible {
+  outline: 2px solid #f0a23b !important;
+  outline-offset: 2px;
+}
+
+/* Tôn trọng prefers-reduced-motion (Mục 2.5 & 6) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   2. Nút bấm (Mục 3.1)
+   -------------------------------------------------------------------------- */
+.btn {
+  min-height: 44px;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: background-color 0.15s ease-out, border-color 0.15s ease-out, color 0.15s ease-out, opacity 0.15s ease-out;
+  cursor: pointer;
+  box-shadow: none !important;
+}
+
+.btn-sm {
+  min-height: 38px;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+.btn-icon {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.5rem;
+}
+
+.btn-primary {
+  --bs-btn-color: var(--btn-primary-text);
+  --bs-btn-bg: #f0a23b;
+  --bs-btn-border-color: #f0a23b;
+  --bs-btn-hover-color: var(--btn-primary-text);
+  --bs-btn-hover-bg: var(--accent-hover);
+  --bs-btn-hover-border-color: var(--accent-hover);
+  --bs-btn-active-color: var(--btn-primary-text);
+  --bs-btn-active-bg: #d98f2f;
+  --bs-btn-active-border-color: #d98f2f;
+  --bs-btn-disabled-color: #14110b;
+  --bs-btn-disabled-bg: #6b5a3c;
+  --bs-btn-disabled-border-color: #6b5a3c;
+}
+
+.btn-outline-secondary {
+  --bs-btn-color: #e6e4df;
+  --bs-btn-border-color: #3a3d44;
+  --bs-btn-hover-bg: transparent;
+  --bs-btn-hover-color: #f0a23b;
+  --bs-btn-hover-border-color: #f0a23b;
+  --bs-btn-active-bg: rgba(240, 162, 59, 0.1);
+  --bs-btn-active-color: #f0a23b;
+  --bs-btn-active-border-color: #f0a23b;
+}
+
+.btn-outline-danger {
+  --bs-btn-color: #f87171;
+  --bs-btn-border-color: rgba(248, 113, 113, 0.45);
+  --bs-btn-hover-color: #14110b;
+  --bs-btn-hover-bg: #f87171;
+  --bs-btn-hover-border-color: #f87171;
+}
+
+/* --------------------------------------------------------------------------
+   3. Card & Thẻ sản phẩm (Mục 3.2)
+   -------------------------------------------------------------------------- */
+.card {
+  background: var(--surface-elevated);
+  border: 1px solid var(--bs-border-color);
+  border-radius: 6px;
+  box-shadow: none;
+  transition: border-color 0.15s ease-out;
+}
+
+.card:hover {
+  border-color: #3a3d44;
+}
+
+.product-card {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: var(--bs-body-color);
+  cursor: pointer;
+}
+
+.product-card:hover {
+  border-color: #f0a23b;
+  color: var(--bs-body-color);
+}
+
+.product-card-img-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background-color: var(--surface-image);
+  border-bottom: 1px solid var(--bs-border-color);
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.product-card-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.product-card.is-out-of-stock .product-card-img-wrap img {
+  opacity: 0.6;
+}
+
+.spec-chip {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  background-color: var(--surface-input);
+  border: 1px solid var(--bs-border-color);
+  border-radius: 6px;
+  padding: 0.125rem 0.5rem;
+}
+
+/* --------------------------------------------------------------------------
+   4. Form & Ô nhập liệu (Mục 3.3)
+   -------------------------------------------------------------------------- */
+.form-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--bs-body-color);
+  margin-bottom: 0.375rem;
+}
+
+.form-control,
+.form-select {
+  min-height: 44px;
+  background-color: var(--surface-input);
+  border: 1px solid var(--bs-border-color);
+  color: var(--bs-body-color);
+  border-radius: 6px;
+  transition: border-color 0.15s ease-out, box-shadow 0.15s ease-out;
+}
+
+.form-control::placeholder {
+  color: #6b7280;
+}
+
+.form-control:focus,
+.form-select:focus {
+  background-color: var(--surface-input);
+  color: var(--bs-body-color);
+  border-color: #f0a23b;
+  box-shadow: 0 0 0 3px rgba(240, 162, 59, 0.25);
+  outline: none;
+}
+
+input[type="date"] {
+  color-scheme: dark;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.invalid-feedback {
+  color: #f87171;
+  font-size: 0.8125rem;
+  margin-top: 0.25rem;
+}
+
+.form-check-input:checked {
+  background-color: #f0a23b;
+  border-color: #f0a23b;
+}
+
+/* --------------------------------------------------------------------------
+   5. Bảng dữ liệu & Cảnh báo hạn trả (Mục 2.3 & 3.4)
+   -------------------------------------------------------------------------- */
+.table {
+  --bs-table-bg: transparent;
+  --bs-table-border-color: var(--bs-border-color);
+  --bs-table-hover-bg: rgba(255, 255, 255, 0.03);
+  color: var(--bs-body-color);
+  margin-bottom: 0;
+  vertical-align: middle;
+}
+
+.table thead th {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  background-color: rgba(0, 0, 0, 0.18);
+  border-bottom: 1px solid var(--bs-border-color);
+  padding: 0.75rem 1rem;
+  white-space: nowrap;
+}
+
+.table tbody td {
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid var(--bs-border-color);
+}
+
+.row-overdue,
+.table > tbody > tr.row-overdue > * {
+  background-color: rgba(220, 53, 69, 0.14) !important;
+}
+
+.table > tbody > tr.row-overdue > td:first-child {
+  box-shadow: inset 3px 0 0 #f87171;
+}
+
+.row-due-soon,
+.table > tbody > tr.row-due-soon > * {
+  background-color: rgba(240, 162, 59, 0.10) !important;
+}
+
+.table > tbody > tr.row-due-soon > td:first-child {
+  box-shadow: inset 3px 0 0 #f0a23b;
+}
+
+/* --------------------------------------------------------------------------
+   6. Badge Trạng thái (Mục 2.3 & 3.5)
+   -------------------------------------------------------------------------- */
+.badge-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.status-pending {
+  color: #aab2bd;
+  background-color: rgba(170, 178, 189, 0.12);
+}
+
+.status-approved {
+  color: #5eead4;
+  background-color: rgba(94, 234, 212, 0.12);
+}
+
+.status-renting {
+  color: #7cc4e8;
+  background-color: rgba(124, 196, 232, 0.12);
+}
+
+.status-returned {
+  color: #34d399;
+  background-color: rgba(52, 211, 153, 0.12);
+}
+
+.status-rejected,
+.status-overdue {
+  color: #f87171;
+  background-color: rgba(248, 113, 113, 0.12);
+}
+
+.status-cancelled {
+  color: #9ca3af;
+  background-color: rgba(156, 163, 175, 0.12);
+}
+
+.status-due-soon {
+  color: #f0a23b;
+  background-color: rgba(240, 162, 59, 0.12);
+}
+
+/* --------------------------------------------------------------------------
+   7. Modal, Dropdown, Toast (Mục 3.6 & 3.7)
+   -------------------------------------------------------------------------- */
+.modal-content,
+.dropdown-menu {
+  background-color: var(--surface-elevated);
+  border: 1px solid var(--bs-border-color);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.modal-header,
+.modal-footer {
+  border-color: var(--bs-border-color);
+}
+
+.modal-backdrop {
+  --bs-backdrop-bg: #000000;
+  --bs-backdrop-opacity: 0.6;
+}
+
+.toast-studio {
+  background-color: var(--surface-elevated);
+  color: var(--bs-body-color);
+  border: 1px solid var(--bs-border-color);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.toast-studio.toast-success {
+  border-left: 3px solid #34d399;
+}
+
+.toast-studio.toast-error {
+  border-left: 3px solid #f87171;
+}
+
+/* --------------------------------------------------------------------------
+   8. Navbar Khách, Sidebar Admin, Phân trang (Mục 3.7 & 4.2)
+   -------------------------------------------------------------------------- */
+.navbar-studio {
+  background-color: var(--surface-elevated);
+  border-bottom: 1px solid var(--bs-border-color);
+  min-height: 68px;
+}
+
+.navbar-studio .nav-link {
+  color: var(--bs-body-color);
+  font-weight: 500;
+  padding: 0.5rem 0.875rem;
+  border-radius: 6px;
+  transition: color 0.15s ease-out, background-color 0.15s ease-out;
+}
+
+.navbar-studio .nav-link:hover,
+.navbar-studio .nav-link.active {
+  color: #f0a23b;
+}
+
+.cart-badge {
+  background-color: #f0a23b;
+  color: #14110b;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.75rem;
+  border-radius: 6px;
+  padding: 0.15rem 0.45rem;
+}
+
+/* Admin Layout */
+.admin-wrapper {
+  display: flex;
+  min-height: 100vh;
+}
+
+.admin-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  background-color: var(--surface-elevated);
+  border-right: 1px solid var(--bs-border-color);
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 44px;
+  padding: 0.5rem 1.25rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-weight: 500;
+  border-left: 3px solid transparent;
+  transition: color 0.15s ease-out, background-color 0.15s ease-out, border-color 0.15s ease-out;
+}
+
+.admin-nav-link:hover {
+  color: var(--bs-body-color);
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.admin-nav-link.active {
+  color: var(--bs-body-color);
+  background-color: rgba(240, 162, 59, 0.08);
+  border-left-color: #f0a23b;
+  font-weight: 600;
+}
+
+.admin-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bs-body-bg);
+}
+
+.admin-topbar {
+  min-height: 60px;
+  background-color: var(--surface-elevated);
+  border-bottom: 1px solid var(--bs-border-color);
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Phân trang (Pagination - Mục 3.7) */
+.pagination {
+  gap: 0.25rem;
+}
+
+.pagination .page-link {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--surface-elevated);
+  border: 1px solid var(--bs-border-color);
+  color: var(--bs-body-color);
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  transition: border-color 0.15s ease-out, color 0.15s ease-out, background-color 0.15s ease-out;
+}
+
+.pagination .page-link:hover {
+  border-color: #f0a23b;
+  color: #f0a23b;
+}
+
+.pagination .page-item.active .page-link {
+  background-color: #f0a23b;
+  border-color: #f0a23b;
+  color: #14110b;
+  font-weight: 700;
+}
+
+.pagination .page-item.disabled .page-link {
+  opacity: 0.45;
+  background-color: var(--surface-input);
+}
+
+/* Khối đặt thuê dính khi cuộn (Mục 3.8) */
+@media (min-width: 992px) {
+  .booking-panel-sticky {
+    position: sticky;
+    top: 88px;
+  }
+}
+
+.ajax-loading-region {
+  transition: opacity 0.15s ease-out;
+}
+
+.ajax-loading-region.is-loading {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* Footer */
+.footer-studio {
+  background-color: var(--surface-elevated);
+  border-top: 1px solid var(--bs-border-color);
+  margin-top: 96px;
+  padding: 48px 0 32px;
+}

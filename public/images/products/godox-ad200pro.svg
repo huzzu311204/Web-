@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600">
+  <rect width="800" height="600" fill="#0f1012"/>
+  <rect x="24" y="24" width="752" height="552" rx="6" fill="none" stroke="#222429" stroke-width="2"/>
+  <text x="56" y="72" fill="#9ca3af" font-family="JetBrains Mono, monospace" font-size="16" font-weight="600" letter-spacing="2">GODOX PRO</text>
+  <rect x="650" y="52" width="94" height="28" rx="4" fill="#1b1d21" stroke="#2a2c30"/>
+  <text x="697" y="71" fill="#f0a23b" font-family="JetBrains Mono, monospace" font-size="13" font-weight="600" text-anchor="middle">PROGEAR</text>
+  
+            <g transform="translate(260, 115)">
+                <polygon points="60,40 165,75 165,155 60,190" fill="#1e2025" stroke="#f0a23b" stroke-width="3"/>
+                <rect x="165" y="80" width="65" height="70" rx="8" fill="#181a1f" stroke="#454954" stroke-width="3"/>
+                <line x1="140" y1="150" x2="140" y2="225" stroke="#454954" stroke-width="6"/>
+                <line x1="100" y1="225" x2="180" y2="225" stroke="#454954" stroke-width="6"/>
+                <circle cx="95" cy="115" r="22" fill="#f0a23b" fill-opacity="0.35"/>
+            </g>
+  <text x="400" y="455" fill="#e6e4df" font-family="Be Vietnam Pro, sans-serif" font-size="30" font-weight="700" text-anchor="middle">AD200 Pro Strobe</text>
+  <text x="400" y="495" fill="#9ca3af" font-family="JetBrains Mono, monospace" font-size="17" font-weight="500" text-anchor="middle">200Ws TTL • HSS 1/8000s</text>
+</svg>
