@@ -1,0 +1,177 @@
+<?php
+declare(strict_types=1);
+
+use App\Core\Response;
+use App\Core\Csrf;
+use App\Core\Auth;
+
+$currentRoute = (string) ($_GET['r'] ?? 'home');
+$cartItems = $_SESSION['rental_cart']['items'] ?? [];
+$cartCount = 0;
+foreach ($cartItems as $item) {
+    $cartCount += (int) ($item['quantity'] ?? 0);
+}
+$flashes = Response::getFlashes();
+$adminUser = Auth::user();
+?>
+<!DOCTYPE html>
+<html lang="vi" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<?= Response::e(Csrf::token()) ?>">
+    <title><?= Response::e($pageTitle ?? 'ProGear Studio — Cho thuê thiết bị chụp ảnh & quay phim') ?></title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="css/theme.css">
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+    <!-- Navbar Khách hàng (Mục 3.7 & 9.3) -->
+    <header class="navbar navbar-expand-lg navbar-studio sticky-top">
+        <div class="container-studio w-100 d-flex align-items-center justify-content-between">
+            <a class="navbar-brand d-flex align-items-center gap-2 text-decoration-none fw-bold fs-5 text-light" href="index.php?r=home">
+                <i class="bi bi-aperture" style="color: #f0a23b;" aria-hidden="true"></i>
+                <span>PROGEAR <span class="fw-normal text-muted fs-6">STUDIO</span></span>
+            </a>
+
+            <button class="navbar-toggler border-secondary btn-icon" type="button" data-bs-toggle="collapse" data-bs-target="#storefrontNavbar" aria-controls="storefrontNavbar" aria-expanded="false" aria-label="Mở menu điều hướng">
+                <i class="bi bi-list fs-4" aria-hidden="true"></i>
+            </button>
+
+            <div class="collapse navbar-collapse" id="storefrontNavbar">
+                <!-- Ô tìm kiếm nhanh trên Navbar -->
+                <form class="d-flex my-3 my-lg-0 mx-lg-4 flex-grow-1" style="max-width: 380px;" action="index.php" method="get" role="search">
+                    <input type="hidden" name="r" value="catalog">
+                    <div class="input-group">
+                        <input type="search" name="q" class="form-control" placeholder="Tìm máy ảnh, ống kính, mã thiết bị..." value="<?= Response::e($_GET['q'] ?? '') ?>" aria-label="Tìm kiếm thiết bị">
+                        <button class="btn btn-outline-secondary btn-icon" type="submit" aria-label="Tìm kiếm">
+                            <i class="bi bi-search" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </form>
+
+                <ul class="navbar-nav ms-auto align-items-lg-center gap-1">
+                    <li class="nav-item">
+                        <a class="nav-link <?= $currentRoute === 'home' ? 'active' : '' ?>" href="index.php?r=home">Trang chủ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?= in_array($currentRoute, ['catalog', 'product'], true) ? 'active' : '' ?>" href="index.php?r=catalog">Thiết bị cho thuê</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?= str_starts_with($currentRoute, 'lookup') ? 'active' : '' ?>" href="index.php?r=lookup">
+                            <i class="bi bi-receipt me-1" aria-hidden="true"></i>Tra cứu đơn
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?= $currentRoute === 'policy' ? 'active' : '' ?>" href="index.php?r=policy">Chính sách thuê</a>
+                    </li>
+                    <li class="nav-item ms-lg-2">
+                        <a class="btn btn-outline-secondary position-relative" href="index.php?r=cart" aria-label="Giỏ thuê thiết bị">
+                            <i class="bi bi-bag-check" aria-hidden="true"></i>
+                            <span>Giỏ thuê</span>
+                            <span id="navbar-cart-count" class="cart-badge ms-1" aria-live="polite"><?= (int) $cartCount ?></span>
+                        </a>
+                    </li>
+                    <?php if ($adminUser): ?>
+                        <li class="nav-item ms-lg-2">
+                            <a class="btn btn-outline-secondary btn-sm" href="index.php?r=admin/dashboard" title="Vào trang quản trị">
+                                <i class="bi bi-shield-lock" aria-hidden="true"></i>
+                                <span>Quản trị</span>
+                            </a>
+                        </li>
+                    <?php endif; ?>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <!-- Flash Messages -->
+    <?php if (!empty($flashes)): ?>
+        <div class="container-studio w-100 mt-3">
+            <?php foreach ($flashes as $type => $msg): ?>
+                <?php
+                $isError = in_array($type, ['error', 'danger'], true);
+                $borderColor = $isError ? '#f87171' : ($type === 'warning' ? '#f0a23b' : '#34d399');
+                $iconClass = $isError ? 'bi-exclamation-octagon' : ($type === 'warning' ? 'bi-exclamation-triangle' : 'bi-check2-circle');
+                ?>
+                <div class="card p-3 mb-2 d-flex flex-row align-items-center justify-content-between" style="border-left: 3px solid <?= $borderColor ?>;" role="alert">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi <?= $iconClass ?>" style="color: <?= $borderColor ?>;" aria-hidden="true"></i>
+                        <span><?= Response::e($msg) ?></span>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" onclick="this.parentElement.remove()" aria-label="Đóng thông báo"></button>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+
+    <!-- Nội dung chính -->
+    <main class="flex-grow-1">
+        <?= $content ?>
+    </main>
+
+    <!-- Toast Container cho AJAX (Mục 3.7 & 5.2) -->
+    <div id="studio-toast-container" class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1090;" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Footer (Mục 4.1 & 9.3) -->
+    <footer class="footer-studio">
+        <div class="container-studio">
+            <div class="row g-4">
+                <div class="col-md-5">
+                    <div class="d-flex align-items-center gap-2 fw-bold fs-5 mb-2">
+                        <i class="bi bi-aperture" style="color: #f0a23b;" aria-hidden="true"></i>
+                        <span>PROGEAR STUDIO</span>
+                    </div>
+                    <p class="text-muted small mb-2">
+                        Hệ thống cho thuê máy ảnh, ống kính, đèn studio và thiết bị quay phim chuyên nghiệp. Kiểm tra lịch trống trực tuyến theo ngày, thiết bị được cân chỉnh và vệ sinh cảm biến trước mỗi lần giao.
+                    </p>
+                    <p class="text-muted small mb-0">
+                        <i class="bi bi-clock me-1" aria-hidden="true"></i>Giờ làm việc: <span class="num text-light">08:00 – 20:30</span> (Tất cả các ngày trong tuần)
+                    </p>
+                </div>
+                <div class="col-md-4">
+                    <h3 class="h6 fw-semibold mb-3">Địa chỉ nhận & trả thiết bị</h3>
+                    <ul class="list-unstyled text-muted small mb-0 d-flex flex-column gap-2">
+                        <li>
+                            <i class="bi bi-geo-alt me-2" style="color: #f0a23b;" aria-hidden="true"></i>184 Nam Kỳ Khởi Nghĩa, Phường Võ Thị Sáu, Quận 3, TP.HCM
+                        </li>
+                        <li>
+                            <i class="bi bi-telephone me-2" style="color: #f0a23b;" aria-hidden="true"></i>Hotline kỹ thuật: <span class="num text-light">0901 234 567</span>
+                        </li>
+                        <li>
+                            <i class="bi bi-envelope me-2" style="color: #f0a23b;" aria-hidden="true"></i>Email: <span class="code text-light">booking@progear.vn</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h3 class="h6 fw-semibold mb-3">Hỗ trợ thuê thiết bị</h3>
+                    <ul class="list-unstyled small d-flex flex-column gap-2 mb-0">
+                        <li><a href="index.php?r=catalog" class="text-muted text-decoration-none">Danh mục thiết bị</a></li>
+                        <li><a href="index.php?r=lookup" class="text-muted text-decoration-none">Tra cứu & Gia hạn đơn thuê</a></li>
+                        <li><a href="index.php?r=policy" class="text-muted text-decoration-none">Quy định đặt cọc & Phí trễ hạn</a></li>
+                        <li><a href="index.php?r=admin/login" class="text-muted text-decoration-none">Khu vực Quản trị viên</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="border-secondary my-4">
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center text-muted small">
+                <span>&copy; <?= date('Y') ?> ProGear Studio. Bài thực hành Lập trình Web.</span>
+                <span>Giao nhận trực tiếp tại cửa hàng — Kiểm tra lịch trống theo thời gian thực.</span>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/app.js"></script>
+    <?php if (!empty($pageScripts) && is_array($pageScripts)): ?>
+        <?php foreach ($pageScripts as $script): ?>
+            <script src="<?= Response::e($script) ?>"></script>
+        <?php endforeach; ?>
+    <?php endif; ?>
+</body>
+</html>
+

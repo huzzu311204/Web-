@@ -1,0 +1,18 @@
+# File cấu hình nhạy cảm chứa mật khẩu thật (nếu tạo bản local)
+config/database.local.php
+.env
+
+# Ảnh upload thử của người dùng trong quá trình chạy (giữ lại thư mục bằng .gitkeep)
+uploads/*
+!uploads/.gitkeep
+
+# File log, file tạm và hệ điều hành
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Thư mục cấu hình riêng của IDE
+.vscode/
+.idea/
