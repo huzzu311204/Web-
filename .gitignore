@@ -2,9 +2,10 @@
 config/database.local.php
 .env
 
-# Ảnh upload thử của người dùng trong quá trình chạy (giữ lại thư mục bằng .gitkeep)
-uploads/*
-!uploads/.gitkeep
+# Ảnh upload thử của người dùng trong quá trình chạy (giữ lại .htaccess)
+public/uploads/products/*
+!public/uploads/products/.htaccess
+uploads/
 
 # File log, file tạm và hệ điều hành
 *.log

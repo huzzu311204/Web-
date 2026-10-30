@@ -4,19 +4,33 @@ declare(strict_types=1);
 use App\Core\Response;
 use App\Core\Csrf;
 use App\Core\Auth;
+use App\Core\Database;
 
-$currentRoute = (string) ($_GET['r'] ?? 'admin/dashboard');
+$currentRoute = (string) ($_GET['r'] ?? 'admin/products');
 $adminUser = Auth::user();
 $flashes = Response::getFlashes();
 
+// Đếm số sản phẩm sắp hết hoặc hết hàng hiển thị ở Sidebar cạnh mục Sản phẩm (Mục 5.2 - A5 & 9.5)
+$lowOrOutCount = 0;
+try {
+    $db = Database::getConnection();
+    $lowOrOutCount = (int) $db->query("
+        SELECT COUNT(*)
+        FROM products
+        WHERE status = 'ACTIVE'
+          AND (quantity = 0 OR (min_stock > 0 AND quantity <= min_stock))
+    ")->fetchColumn();
+} catch (\Throwable $e) {
+    $lowOrOutCount = 0;
+}
+
 $navItems = [
-    ['route' => 'admin/dashboard',       'match' => ['admin', 'admin/dashboard'], 'icon' => 'bi-speedometer2', 'label' => 'Dashboard'],
-    ['route' => 'admin/rentals',         'match' => ['admin/rentals', 'admin/rentals/detail'], 'icon' => 'bi-calendar2-check', 'label' => 'Đơn thuê & Gia hạn'],
-    ['route' => 'admin/products',        'match' => ['admin/products', 'admin/products/create', 'admin/products/edit'], 'icon' => 'bi-camera', 'label' => 'Sản phẩm'],
+    ['route' => 'admin/products',        'match' => ['admin', 'admin/products', 'admin/products/create', 'admin/products/edit'], 'icon' => 'bi-camera', 'label' => 'Sản phẩm', 'badge' => $lowOrOutCount],
     ['route' => 'admin/categories',      'match' => ['admin/categories'], 'icon' => 'bi-diagram-3', 'label' => 'Danh mục'],
     ['route' => 'admin/brands',          'match' => ['admin/brands'], 'icon' => 'bi-award', 'label' => 'Thương hiệu'],
     ['route' => 'admin/suppliers',       'match' => ['admin/suppliers'], 'icon' => 'bi-building', 'label' => 'Nhà cung cấp'],
-    ['route' => 'admin/import-receipts', 'match' => ['admin/import-receipts', 'admin/import-receipts/create', 'admin/import-receipts/detail'], 'icon' => 'bi-box-seam', 'label' => 'Phiếu nhập kho'],
+    ['route' => 'admin/import-receipts', 'match' => ['admin/import-receipts', 'admin/import-receipts/create', 'admin/import-receipts/detail'], 'icon' => 'bi-file-earmark-plus', 'label' => 'Phiếu nhập kho'],
+    ['route' => 'admin/stock-logs',      'match' => ['admin/stock-logs'], 'icon' => 'bi-clock-history', 'label' => 'Lịch sử tồn kho'],
     ['route' => 'admin/users',           'match' => ['admin/users'], 'icon' => 'bi-people', 'label' => 'Tài khoản Admin'],
 ];
 ?>
@@ -26,23 +40,23 @@ $navItems = [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<?= Response::e(Csrf::token()) ?>">
-    <title><?= Response::e($pageTitle ?? 'Quản trị — ProGear Studio') ?></title>
+    <title><?= Response::e($pageTitle ?? 'Quản trị Sản phẩm & Kho — ProGear Studio') ?></title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="css/theme.css">
 </head>
 <body>
     <div class="admin-wrapper">
-        <!-- Sidebar Desktop (rộng 240px - Mục 3.7 & 4.2) -->
+        <!-- Sidebar Desktop (rộng 240px - Mục 9.5) -->
         <aside class="admin-sidebar d-none d-lg-flex">
             <div class="p-3 border-bottom border-secondary d-flex align-items-center gap-2">
                 <i class="bi bi-aperture fs-5" style="color: #f0a23b;" aria-hidden="true"></i>
                 <div>
                     <div class="fw-bold text-light lh-1">PROGEAR</div>
-                    <small class="text-muted" style="font-size: 0.75rem;">Quản trị cho thuê</small>
+                    <small class="text-muted" style="font-size: 0.75rem;">Quản lý Sản phẩm & Kho</small>
                 </div>
             </div>
 
@@ -52,6 +66,9 @@ $navItems = [
                     <a href="index.php?r=<?= Response::e($item['route']) ?>" class="admin-nav-link <?= $isActive ? 'active' : '' ?>">
                         <i class="bi <?= Response::e($item['icon']) ?>" aria-hidden="true"></i>
                         <span><?= Response::e($item['label']) ?></span>
+                        <?php if (!empty($item['badge']) && (int) $item['badge'] > 0): ?>
+                            <span id="sidebar-low-stock-badge" class="sidebar-alert-badge" title="Số sản phẩm sắp hết hoặc hết hàng"><?= (int) $item['badge'] ?></span>
+                        <?php endif; ?>
                     </a>
                 <?php endforeach; ?>
             </nav>
@@ -64,7 +81,7 @@ $navItems = [
             </div>
         </aside>
 
-        <!-- Sidebar Offcanvas cho màn hình nhỏ (Mục 3.7) -->
+        <!-- Sidebar Offcanvas cho màn hình nhỏ -->
         <div class="offcanvas offcanvas-start" tabindex="-1" id="adminSidebarOffcanvas" aria-labelledby="adminSidebarLabel" style="width: 240px; background-color: var(--surface-elevated);">
             <div class="offcanvas-header border-bottom border-secondary">
                 <h2 class="h6 offcanvas-title fw-bold mb-0" id="adminSidebarLabel">
@@ -79,6 +96,9 @@ $navItems = [
                         <a href="index.php?r=<?= Response::e($item['route']) ?>" class="admin-nav-link <?= $isActive ? 'active' : '' ?>">
                             <i class="bi <?= Response::e($item['icon']) ?>" aria-hidden="true"></i>
                             <span><?= Response::e($item['label']) ?></span>
+                            <?php if (!empty($item['badge']) && (int) $item['badge'] > 0): ?>
+                                <span class="sidebar-alert-badge"><?= (int) $item['badge'] ?></span>
+                            <?php endif; ?>
                         </a>
                     <?php endforeach; ?>
                 </nav>
@@ -93,13 +113,13 @@ $navItems = [
 
         <!-- Khu vực nội dung chính -->
         <div class="admin-main">
-            <!-- Topbar mỏng (Mục 4.2 & 9.4) -->
+            <!-- Topbar mỏng -->
             <header class="admin-topbar">
                 <div class="d-flex align-items-center gap-2">
                     <button class="btn btn-outline-secondary btn-icon d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#adminSidebarOffcanvas" aria-label="Mở menu quản trị">
                         <i class="bi bi-list" aria-hidden="true"></i>
                     </button>
-                    <span class="text-muted small d-none d-sm-inline">Hệ thống quản lý thiết bị & đơn thuê</span>
+                    <span class="text-muted small d-none d-sm-inline">Hệ thống quản lý sản phẩm & kiểm soát tồn kho</span>
                 </div>
 
                 <div class="d-flex align-items-center gap-3">
@@ -125,8 +145,8 @@ $navItems = [
                     <?php foreach ($flashes as $type => $msg): ?>
                         <?php
                         $isError = in_array($type, ['error', 'danger'], true);
-                        $borderColor = $isError ? '#f87171' : ($type === 'warning' ? '#f0a23b' : '#34d399');
-                        $iconClass = $isError ? 'bi-exclamation-octagon' : ($type === 'warning' ? 'bi-exclamation-triangle' : 'bi-check2-circle');
+                        $borderColor = $isError ? '#f87171' : ($type === 'warning' ? '#facc15' : '#34d399');
+                        $iconClass = $isError ? 'bi-exclamation-octagon' : ($type === 'warning' ? 'bi-exclamation-triangle' : 'bi-check-circle');
                         ?>
                         <div class="card p-3 mb-3 d-flex flex-row align-items-center justify-content-between" style="border-left: 3px solid <?= $borderColor ?>;" role="alert">
                             <div class="d-flex align-items-center gap-2">
@@ -155,4 +175,3 @@ $navItems = [
     <?php endif; ?>
 </body>
 </html>
-

@@ -27,7 +27,7 @@ window.StudioUI = (function () {
         toastEl.setAttribute('aria-live', 'polite');
         toastEl.setAttribute('aria-atomic', 'true');
 
-        const iconClass = isError ? 'bi-exclamation-octagon' : 'bi-check2-circle';
+        const iconClass = isError ? 'bi-exclamation-octagon' : 'bi-check-circle';
         const iconColor = isError ? '#f87171' : '#34d399';
 
         toastEl.innerHTML = `
@@ -81,8 +81,8 @@ window.StudioUI = (function () {
         return data;
     }
 
-    function updateCartBadge(count) {
-        const badge = document.getElementById('navbar-cart-count');
+    function updateCompareBadge(count) {
+        const badge = document.getElementById('navbar-compare-count');
         if (badge) {
             badge.textContent = String(count);
         }
@@ -94,7 +94,6 @@ window.StudioUI = (function () {
         showToast,
         setButtonLoading,
         fetchJson,
-        updateCartBadge
+        updateCompareBadge
     };
 })();
-

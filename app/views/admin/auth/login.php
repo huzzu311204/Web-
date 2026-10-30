@@ -14,7 +14,7 @@ $flashes = Response::getFlashes();
     <title><?= Response::e($pageTitle ?? 'Đăng nhập Quản trị — ProGear Studio') ?></title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="css/theme.css">
@@ -41,7 +41,7 @@ $flashes = Response::getFlashes();
 
         <div class="card p-4">
             <h1 class="h3 mb-1">Đăng nhập quản trị</h1>
-            <p class="text-muted small mb-4">Dành cho nhân viên điều phối thiết bị & duyệt đơn thuê.</p>
+            <p class="text-muted small mb-4">Hệ thống quản lý sản phẩm & điều phối tồn kho thiết bị.</p>
 
             <?php if (!empty($errors['general'])): ?>
                 <div class="p-3 mb-3 rounded small d-flex align-items-center gap-2" style="background: rgba(248, 113, 113, 0.12); border: 1px solid #f87171; color: #f87171;" role="alert">
@@ -59,9 +59,10 @@ $flashes = Response::getFlashes();
                         type="text"
                         id="username"
                         name="username"
+                        maxlength="50"
                         class="form-control <?= !empty($errors['username']) ? 'is-invalid' : '' ?>"
                         value="<?= Response::e($old['username'] ?? '') ?>"
-                        placeholder="Nhập username (ví dụ: admin)"
+                        placeholder="Nhập username"
                         autocomplete="username"
                         autofocus
                         required
@@ -92,15 +93,8 @@ $flashes = Response::getFlashes();
                     <span>Đăng nhập hệ thống</span>
                 </button>
             </form>
-
-            <hr class="border-secondary my-4">
-            <div class="small text-muted">
-                <div>Tài khoản mẫu chạy thử:</div>
-                <div class="mt-1">Username: <span class="code text-light">admin</span> &middot; Mật khẩu: <span class="code text-light">Admin@123</span></div>
-            </div>
         </div>
     </div>
 
 </body>
 </html>
-

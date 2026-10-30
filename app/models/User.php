@@ -33,7 +33,7 @@ class User
 
     public function getAll(): array
     {
-        $stmt = $this->db->query('SELECT id, username, full_name, email, phone, role, status, created_at FROM users ORDER BY id ASC');
+        $stmt = $this->db->query('SELECT id, username, full_name, email, role, status, created_at FROM users ORDER BY id ASC');
         return $stmt->fetchAll();
     }
 
@@ -52,15 +52,14 @@ class User
     public function create(array $data): int
     {
         $stmt = $this->db->prepare(
-            'INSERT INTO users (username, password, full_name, email, phone, role, status)
-             VALUES (:username, :password, :full_name, :email, :phone, :role, :status)'
+            'INSERT INTO users (username, password, full_name, email, role, status)
+             VALUES (:username, :password, :full_name, :email, :role, :status)'
         );
         $stmt->execute([
             'username'  => trim($data['username']),
             'password'  => password_hash($data['password'], PASSWORD_DEFAULT),
             'full_name' => trim($data['full_name']),
             'email'     => trim($data['email'] ?? '') ?: null,
-            'phone'     => trim($data['phone'] ?? '') ?: null,
             'role'      => 'ADMIN',
             'status'    => ($data['status'] ?? 'ACTIVE') === 'INACTIVE' ? 'INACTIVE' : 'ACTIVE',
         ]);
@@ -72,13 +71,12 @@ class User
         if (!empty($data['password'])) {
             $stmt = $this->db->prepare(
                 'UPDATE users
-                 SET full_name = :full_name, email = :email, phone = :phone, password = :password
+                 SET full_name = :full_name, email = :email, password = :password
                  WHERE id = :id'
             );
             return $stmt->execute([
                 'full_name' => trim($data['full_name']),
                 'email'     => trim($data['email'] ?? '') ?: null,
-                'phone'     => trim($data['phone'] ?? '') ?: null,
                 'password'  => password_hash($data['password'], PASSWORD_DEFAULT),
                 'id'        => $id,
             ]);
@@ -86,13 +84,12 @@ class User
 
         $stmt = $this->db->prepare(
             'UPDATE users
-             SET full_name = :full_name, email = :email, phone = :phone
+             SET full_name = :full_name, email = :email
              WHERE id = :id'
         );
         return $stmt->execute([
             'full_name' => trim($data['full_name']),
             'email'     => trim($data['email'] ?? '') ?: null,
-            'phone'     => trim($data['phone'] ?? '') ?: null,
             'id'        => $id,
         ]);
     }
@@ -108,4 +105,3 @@ class User
         return $stmt->execute(['status' => $newStatus, 'id' => $id]);
     }
 }
-

@@ -30,14 +30,14 @@ class Csrf
         }
 
         $sessionToken = $_SESSION[self::SESSION_KEY] ?? '';
-        if ($sessionToken === '' || $token === '') {
+        if ($sessionToken === '' || !is_string($token) || $token === '') {
             return false;
         }
 
-        return hash_equals($sessionToken, (string) $token);
+        return hash_equals($sessionToken, $token);
     }
 
-    public static function requireValid(bool $isAjax = false): void
+    public static function requireValid(bool $isAjax = false, bool $isAdminRoute = false): void
     {
         if (!self::verify()) {
             if ($isAjax) {
@@ -47,9 +47,38 @@ class Csrf
                 ], 403);
             }
             Response::setFlash('error', 'Phiên bảo mật (CSRF) không hợp lệ hoặc đã hết hạn. Vui lòng thử lại.');
-            $referer = $_SERVER['HTTP_REFERER'] ?? 'index.php';
-            Response::redirect($referer);
+            $fallback = $isAdminRoute ? 'index.php?r=admin/products' : 'index.php?r=home';
+            Response::redirect(self::safeRedirectTarget($fallback));
         }
     }
-}
 
+    /**
+     * Chỉ cho phép chuyển hướng trong cùng host để chống Open Redirect (Mục 11 & TC28)
+     */
+    public static function safeRedirectTarget(string $fallback = 'index.php'): string
+    {
+        $referer = (string) ($_SERVER['HTTP_REFERER'] ?? '');
+        if ($referer === '') {
+            return $fallback;
+        }
+
+        $parts = parse_url($referer);
+        if ($parts === false) {
+            return $fallback;
+        }
+
+        $currentHost = strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
+        if (isset($parts['host']) && strtolower($parts['host']) !== $currentHost) {
+            return $fallback;
+        }
+
+        $path = $parts['path'] ?? 'index.php';
+        $base = basename($path);
+        if ($base !== 'index.php' && $base !== '') {
+            return $fallback;
+        }
+
+        $query = isset($parts['query']) && $parts['query'] !== '' ? '?' . $parts['query'] : '';
+        return 'index.php' . $query;
+    }
+}

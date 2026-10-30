@@ -10,7 +10,7 @@ $isEditing = !empty($old['id']);
 <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-2 mb-4">
     <div>
         <h1 class="h2 mb-1">Tài khoản Quản trị viên</h1>
-        <p class="text-muted small mb-0">Quản lý nhân sự điều phối kho & duyệt đơn (Mật khẩu lưu bằng bcrypt hash).</p>
+        <p class="text-muted small mb-0">Quản lý nhân sự vận hành sản phẩm & kho (Mật khẩu lưu bằng bcrypt hash).</p>
     </div>
     <?php if ($isEditing): ?>
         <a href="index.php?r=admin/users" class="btn btn-outline-secondary btn-sm">
@@ -33,7 +33,7 @@ $isEditing = !empty($old['id']);
                         <tr>
                             <th>Username</th>
                             <th>Họ và tên</th>
-                            <th>Liên hệ</th>
+                            <th>Email</th>
                             <th>Trạng thái</th>
                             <th class="text-end">Thao tác</th>
                         </tr>
@@ -46,22 +46,17 @@ $isEditing = !empty($old['id']);
                                     <div class="fw-medium"><?= Response::e($u['full_name']) ?></div>
                                     <small class="text-muted">Tạo ngày: <span class="num"><?= Response::e(substr((string) $u['created_at'], 0, 10)) ?></span></small>
                                 </td>
-                                <td class="small">
-                                    <?php if (!empty($u['phone'])): ?>
-                                        <div class="num"><?= Response::e($u['phone']) ?></div>
-                                    <?php endif; ?>
-                                    <?php if (!empty($u['email'])): ?>
-                                        <div class="text-muted"><?= Response::e($u['email']) ?></div>
-                                    <?php endif; ?>
+                                <td class="small text-muted">
+                                    <?= !empty($u['email']) ? Response::e($u['email']) : '—' ?>
                                 </td>
                                 <td>
                                     <?php if ($u['status'] === 'ACTIVE'): ?>
-                                        <span class="badge-status status-returned">
-                                            <i class="bi bi-check2-circle" aria-hidden="true"></i>
+                                        <span class="badge-status stock-in">
+                                            <i class="bi bi-check-circle" aria-hidden="true"></i>
                                             <span>Đang hoạt động</span>
                                         </span>
                                     <?php else: ?>
-                                        <span class="badge-status status-rejected">
+                                        <span class="badge-status stock-out">
                                             <i class="bi bi-lock" aria-hidden="true"></i>
                                             <span>Đã khóa</span>
                                         </span>
@@ -93,7 +88,7 @@ $isEditing = !empty($old['id']);
         </div>
     </div>
 
-    <!-- Form Thêm / Sửa dùng chung (Mục 4.2) -->
+    <!-- Form Thêm / Sửa dùng chung -->
     <div class="col-lg-4">
         <div class="card p-4">
             <h2 class="h5 mb-3"><?= $isEditing ? 'Cập nhật tài khoản' : 'Thêm tài khoản Admin' ?></h2>
@@ -110,6 +105,7 @@ $isEditing = !empty($old['id']);
                         type="text"
                         id="username"
                         name="username"
+                        maxlength="50"
                         class="form-control code <?= !empty($errors['username']) ? 'is-invalid' : '' ?>"
                         value="<?= Response::e($old['username'] ?? '') ?>"
                         <?= $isEditing ? 'readonly' : 'required' ?>
@@ -126,28 +122,14 @@ $isEditing = !empty($old['id']);
                         type="text"
                         id="full_name"
                         name="full_name"
+                        maxlength="100"
                         class="form-control <?= !empty($errors['full_name']) ? 'is-invalid' : '' ?>"
                         value="<?= Response::e($old['full_name'] ?? '') ?>"
                         required
-                        placeholder="Nhập họ và tên nhân viên"
+                        placeholder="Nhập họ và tên quản trị viên"
                     >
                     <?php if (!empty($errors['full_name'])): ?>
                         <div class="invalid-feedback d-block"><?= Response::e($errors['full_name']) ?></div>
-                    <?php endif; ?>
-                </div>
-
-                <div class="mb-3">
-                    <label for="phone" class="form-label">Số điện thoại</label>
-                    <input
-                        type="tel"
-                        id="phone"
-                        name="phone"
-                        class="form-control num <?= !empty($errors['phone']) ? 'is-invalid' : '' ?>"
-                        value="<?= Response::e($old['phone'] ?? '') ?>"
-                        placeholder="0901234567"
-                    >
-                    <?php if (!empty($errors['phone'])): ?>
-                        <div class="invalid-feedback d-block"><?= Response::e($errors['phone']) ?></div>
                     <?php endif; ?>
                 </div>
 
@@ -157,9 +139,10 @@ $isEditing = !empty($old['id']);
                         type="email"
                         id="email"
                         name="email"
+                        maxlength="100"
                         class="form-control <?= !empty($errors['email']) ? 'is-invalid' : '' ?>"
                         value="<?= Response::e($old['email'] ?? '') ?>"
-                        placeholder="nhanvien@progear.vn"
+                        placeholder="admin@progear.vn"
                     >
                     <?php if (!empty($errors['email'])): ?>
                         <div class="invalid-feedback d-block"><?= Response::e($errors['email']) ?></div>
@@ -175,7 +158,7 @@ $isEditing = !empty($old['id']);
                         id="password"
                         name="password"
                         class="form-control <?= !empty($errors['password']) ? 'is-invalid' : '' ?>"
-                        placeholder="Tối thiểu 6 ký tự"
+                        placeholder="Tối thiểu 8 ký tự"
                         <?= $isEditing ? '' : 'required' ?>
                     >
                     <?php if (!empty($errors['password'])): ?>
@@ -184,11 +167,10 @@ $isEditing = !empty($old['id']);
                 </div>
 
                 <button type="submit" class="btn btn-primary w-100">
-                    <i class="bi bi-check2-circle" aria-hidden="true"></i>
+                    <i class="bi bi-check-circle" aria-hidden="true"></i>
                     <span><?= $isEditing ? 'Lưu thay đổi' : 'Tạo tài khoản' ?></span>
                 </button>
             </form>
         </div>
     </div>
 </div>
-

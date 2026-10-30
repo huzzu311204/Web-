@@ -1,4 +1,4 @@
-# Nhật ký triển khai dự án: Website cho thuê thiết bị chụp ảnh (ProGear Studio)
+# Nhật ký triển khai dự án: Website Quản lý Sản phẩm & Tồn kho (ProGear Studio)
 
 - **Thư mục dự án:** `C:\xampp\htdocs\camera-rental`
 - **Chuẩn thiết kế:** `design-system/camera-rental/MASTER.md`
@@ -6,70 +6,35 @@
 
 ---
 
-## Giai đoạn 1 — Thiết kế Cơ sở dữ liệu & Khởi tạo Core MVC
+## Giai đoạn 0 — Chuyển đổi sang Quản lý Sản phẩm & Tồn kho (Phụ lục A) và Vá bảo mật nền
 
-### 1.1. Mục tiêu giai đoạn
-- Thiết kế đầy đủ 11 bảng CSDL (`camera_rental_db`) gồm 6 bảng gốc và 5 bảng mở rộng cho nghiệp vụ thuê & gia hạn.
-- Chuẩn bị dữ liệu mẫu thực tế (28 thiết bị thật, thông số kỹ thuật chuẩn hóa, phiếu nhập, các đơn thuê đủ trạng thái dùng ngày động `CURDATE()`).
-- Khởi tạo kiến trúc PHP 8.x MVC thuần, kết nối PDO, định tuyến, xác thực phiên, chống CSRF, chống XSS và kiểm tra dữ liệu đầu vào.
+### 0.1. Mục tiêu giai đoạn
+- Áp dụng Phụ lục A: loại bỏ hoàn toàn các bảng và route cho thuê, chuyển sang CSDL `camera_store_db` gồm **9 bảng** (giữ nguyên tên cột của 6 bảng gốc + thêm `brands`, `product_specs`, `stock_logs`).
+- Bổ sung kiểm soát bảo mật tập trung trong `Router::dispatch()` (`auth`, `method`, `ajax` và kiểm tra CSRF tự động cho mọi request `POST`).
+- Nâng cấp bảo mật đăng nhập, đối chiếu trạng thái tài khoản `ACTIVE` trong DB trên mỗi request, chống Open Redirect và bảo vệ thư mục nội bộ bằng `.htaccess`.
+- Chuẩn hóa lại giao diện theo đúng yêu cầu *"Chọn 1 font sans-serif"* (**Be Vietnam Pro**, bật `tabular-nums` cho số liệu) và bộ 4 badge tồn kho.
 
-### 1.2. Danh sách file đã tạo trong Giai đoạn 1
+### 0.2. Danh sách thay đổi trong Giai đoạn 0
 
-| File | Vai trò & Nghiệp vụ đã cài đặt |
+| Thành phần | Nội dung thực hiện |
 |---|---|
-| `database/schema.sql` | Tạo database `camera_rental_db` (`InnoDB`, `utf8mb4_unicode_ci`), 11 bảng (`users`, `suppliers`, `categories`, `brands`, `products`, `product_specs`, `import_receipts`, `import_receipt_details`, `rentals`, `rental_details`, `rental_extensions`), khóa ngoại, index lịch trống và dữ liệu mẫu. |
-| `config/database.php` | Cấu hình thông số kết nối MySQL/MariaDB (`127.0.0.1`, port `3306`, `camera_rental_db`, charset `utf8mb4`). |
-| `app/core/Database.php` | Lớp kết nối PDO Singleton, bật `ERRMODE_EXCEPTION`, `FETCH_ASSOC`, tắt `EMULATE_PREPARES`. |
-| `app/core/Router.php` | Bộ định tuyến tách biệt 3 khu vực: Storefront (khách hàng), Admin (quản trị) và API (8 endpoint AJAX trả JSON). |
-| `app/core/Auth.php` | Quản lý phiên đăng nhập Admin, gọi `session_regenerate_id(true)` sau khi đăng nhập, kiểm tra quyền trên mọi request bằng `Auth::requireAdmin()`. |
-| `app/core/Csrf.php` | Sinh token mật mã học (`random_bytes(32)`), render input ẩn `Csrf::field()` và kiểm tra token từ cả form `POST` lẫn header `X-CSRF-Token` của AJAX. |
-| `app/core/Validator.php` | Kiểm tra SĐT Việt Nam, email, khoảng ngày thuê hợp lệ (1–30 ngày, không ở quá khứ), whitelist cột sắp xếp. |
-| `app/core/Response.php` | Render view kèm layout, trả JSON cho AJAX (`Response::json()`), quản lý flash message, escape XSS (`Response::e()`) và định dạng tiền tệ (`Response::money()` -> `450.000 đ`). |
-| `public/index.php` & `index.php` | Front Controller khởi tạo session an toàn (`HttpOnly`, `SameSite=Lax`), PSR-4 autoloader cho namespace `App\*`, khai báo toàn bộ route. |
-
-### 1.3. Kiểm tra nghiệm thu Giai đoạn 1
-- Đã kiểm tra cú pháp PHP (`php -l`) trên toàn bộ file Core và cấu hình: `No syntax errors detected`.
-- Dữ liệu mẫu trong `schema.sql` có sẵn 2 tài khoản Admin (`admin` / `Admin@123` và `staff` / `Admin@123`, lưu bằng bcrypt hash).
+| `database/schema.sql` | Tạo database `camera_store_db` gồm 9 bảng: `users` (cột gốc + `status`), `suppliers`, `categories` (`parent_id`), `brands`, `products` (giữ cột gốc + thêm `brand_id`, `min_stock`, `image` và `CHECK (quantity >= 0 AND min_stock >= 0 AND price >= 0)`), `product_specs`, `import_receipts` (bỏ cột `code`, giữ cột gốc), `import_receipt_details` (giữ cột gốc `receipt_id`, `import_price`), `stock_logs`. Dữ liệu mẫu có đủ trạng thái Còn hàng, Sắp hết, Hết hàng, Ngừng kinh doanh và lịch sử `stock_logs` khớp 100% với `products.quantity`. |
+| `app/core/Router.php` | Hỗ trợ khai báo tham số `['auth' => 'admin', 'method' => 'POST', 'ajax' => true]`. Tự động chặn sai phương thức HTTP (`405`), kiểm tra quyền Admin và kiểm tra CSRF token cho mọi route `POST` trước khi gọi Controller. |
+| `app/core/Auth.php` | Đối chiếu lại trạng thái tài khoản (`ACTIVE` & `ADMIN`) trong database trên mỗi request (tài khoản bị khóa mất hiệu lực ngay lập tức - TC30). Hủy session và xóa cookie đầy đủ khi đăng xuất. |
+| `app/controllers/admin/AuthController.php` | Luôn gọi `password_verify()` (dùng dummy hash khi không tìm thấy username) để chống dò tài khoản, giới hạn đăng nhập sai liên tiếp (TC31), thông báo lỗi chung, sau khi đăng nhập chuyển về `admin/products`. |
+| `app/core/Csrf.php` | Thêm `Csrf::safeRedirectTarget()` chỉ cho phép chuyển hướng trong cùng host khi CSRF lỗi (chống Open Redirect - TC28). |
+| `app/core/Validator.php` | Bỏ `validateDateRange`; bổ sung `isValidLength()`, `isNonNegativeInt()`, `isPositiveInt()`, `clampInt()`. |
+| `app/core/UiHelper.php` | Đổi sang 4 badge tồn kho (`Còn hàng` `#34d399`, `Sắp hết` `#facc15`, `Hết hàng` `#f87171`, `Ngừng kinh doanh` `#9ca3af`), badge loại giao dịch kho (`IMPORT`, `EXPORT`, `ADJUSTMENT`), class tô dòng `.row-out-of-stock` / `.row-low-stock` và mã phiếu nhập `PN-000001`. |
+| `design-system/camera-rental/MASTER.md` & `public/css/theme.css` | Dùng duy nhất 1 font sans-serif **Be Vietnam Pro** (`tabular-nums` cho `.num`, `.price`, `.code`), cập nhật style 4 badge tồn kho, thanh so sánh cố định cuối trang và badge cảnh báo ở Sidebar Admin. |
+| `app/views/layouts/front.php` & `admin.php` | Navbar khách hiển thị nút **So sánh** kèm số lượng; Sidebar Admin hiển thị số lượng sản phẩm sắp hết/hết hàng cạnh mục "Sản phẩm", bỏ trang Dashboard. |
+| `public/index.php` & `.htaccess` | Bật `session.use_strict_mode = 1`, gửi header `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, thông báo lỗi chung không lộ thông tin DB (TC33), thêm `.htaccess` chặn truy cập `app/`, `config/`, `database/` và chặn chạy PHP/SVG trong `public/uploads/products/`. |
 
 ---
 
-## Giai đoạn 2 — Hệ thống Giao diện (`theme.css`, `print.css`), Layout & Xác thực Admin
+## Các giai đoạn tiếp theo
 
-### 2.1. Mục tiêu giai đoạn
-- Thực thi nghiêm ngặt file chuẩn thiết kế `design-system/camera-rental/MASTER.md`.
-- Tạo 3 layout dùng chung (`front.php`, `admin.php`, `print.php`) và helper giao diện.
-- Xây dựng chức năng Đăng nhập/Đăng xuất Admin, trang Dashboard thẻ số liệu (cảnh báo đơn quá hạn & sắp đến hạn) và Quản lý tài khoản Admin.
-- Tạo bộ ảnh sản phẩm tỷ lệ `4:3` đồng nhất trên nền `#0f1012` cho toàn bộ 28 thiết bị mẫu.
-
-### 2.2. Danh sách file đã tạo trong Giai đoạn 2
-
-| File | Vai trò & Nghiệp vụ đã cài đặt |
-|---|---|
-| `design-system/camera-rental/MASTER.md` | Nguồn chuẩn duy nhất cho giao diện (Design Tokens, Typography, Bảng màu, 6 Badge trạng thái, quy tắc Component, Layout và Checklist 13 mục). |
-| `public/css/theme.css` | Ghi đè biến Bootstrap 5.3 sang nền tối `#131416`, khối nổi `#1b1d21`, ô nhập `#17191c`, màu nhấn Hổ phách `#f0a23b` (chữ `#14110b`), font `Be Vietnam Pro` + `JetBrains Mono` (`tabular-nums`), bo góc `6px`, `.badge-status`, `.row-overdue`, `.row-due-soon`, tôn trọng `prefers-reduced-motion`. |
-| `public/css/print.css` | CSS chuyên biệt cho trang in phiếu thuê A4 (nền trắng `#ffffff`, chữ đen `#111111`, ẩn các phần tử `.no-print`). |
-| `app/core/UiHelper.php` | Render 6 badge trạng thái đơn kèm Bootstrap Icons (`aria-hidden="true"`), badge cảnh báo "Quá hạn" / "Sắp đến hạn", class tô dòng `.row-overdue` / `.row-due-soon` và đường dẫn ảnh thiết bị. |
-| `public/js/app.js` | Thư viện JS dùng chung (`window.StudioUI`): hiển thị Toast tự đóng sau 4 giây, gắn header `X-CSRF-Token` cho `fetch()`, bật/tắt trạng thái loading có spinner trên nút bấm, cập nhật số lượng giỏ thuê trên navbar. |
-| `app/views/layouts/front.php` | Layout khách hàng: Navbar có tìm kiếm, giỏ thuê kèm badge số lượng (`aria-live="polite"`), vùng flash message, toast container và footer. |
-| `app/views/layouts/admin.php` | Layout quản trị: Sidebar trái rộng `240px` (chuyển sang `offcanvas` trên di động), mục active có viền trái 3px hổ phách, topbar mỏng hiển thị thông tin admin và form đăng xuất có CSRF. |
-| `app/views/layouts/print.php` | Layout bản in phiếu thuê A4. |
-| `app/views/storefront/404.php` | Trang thông báo 404 thân thiện khi truy cập đường dẫn không tồn tại. |
-| `app/models/User.php` | Truy vấn bảng `users` bằng PDO prepared statements, tạo/cập nhật tài khoản với `password_hash()`, đổi trạng thái khóa/mở. |
-| `app/controllers/admin/AuthController.php` & `app/views/admin/auth/login.php` | Xử lý đăng nhập bằng `password_verify()`, kiểm tra trạng thái `ACTIVE`, chống CSRF, tái tạo session ID, hiển thị lỗi ngay dưới trường nhập. |
-| `app/controllers/admin/DashboardController.php` & `app/views/admin/dashboard/index.php` | Truy vấn 5 thẻ số liệu thực tế từ MySQL (Đơn chờ duyệt, Gia hạn chờ duyệt, Đang thuê, Sắp đến hạn ≤ 2 ngày, Quá hạn) và bảng "Đơn thuê cần chú ý". |
-| `app/controllers/admin/UserController.php` & `app/views/admin/users/index.php` | Xem danh sách, thêm mới, cập nhật thông tin/mật khẩu và khóa/mở tài khoản Admin (chặn tự khóa chính mình). |
-| `public/images/products/*.svg` | 29 ảnh minh họa thiết bị studio tỷ lệ `4:3` (`800×600`, nền `#0f1012`) khớp với 28 sản phẩm trong `schema.sql`. |
-
-### 2.3. Kiểm tra nghiệm thu Giai đoạn 2
-- Toàn bộ 18 file PHP trong dự án đã được kiểm tra bằng `php -l` và không có lỗi cú pháp.
-- Tuân thủ đầy đủ checklist trong `MASTER.md`: không dùng emoji, không còn màu xanh dương mặc định của Bootstrap, nút và input đạt chiều cao tối thiểu `44px`, có `aria-label` cho các nút chỉ có icon.
-
----
-
-## Các giai đoạn tiếp theo (Sẽ cập nhật ngay sau khi hoàn thành từng giai đoạn)
-
-- [ ] **Giai đoạn 3 — CRUD Quản trị (Nền 5 điểm):** Sản phẩm (kèm thông số động & upload ảnh), Danh mục (cây phân cấp), Thương hiệu, Nhà cung cấp, Phiếu nhập kho Master–Detail.
-- [ ] **Giai đoạn 4 — Storefront:** Trang chủ bất đối xứng, Danh sách sản phẩm + Bộ lọc AJAX, Chi tiết sản phẩm, Trang chính sách thuê.
-- [ ] **Giai đoạn 5 — Nghiệp vụ thuê & AJAX (+1 điểm):** Kiểm tra lịch trống theo từng ngày (`AvailabilityService`), Giỏ thuê Session, Gửi yêu cầu thuê, Tra cứu & Hủy đơn, Xử lý vòng đời đơn thuê phía Admin.
-- [ ] **Giai đoạn 6 — Gia hạn thuê, Gợi ý thuê kèm, In phiếu thuê & Kiểm thử hoàn thiện.**
-
+- [ ] **Giai đoạn 1 — CRUD (Nền 5 điểm):** CRUD Sản phẩm (thông số động, upload ảnh an toàn bằng `finfo` + `getimagesize()`, kiểm tra mã SKU trùng bằng AJAX), CRUD Danh mục (cây), Thương hiệu, Nhà cung cấp; Danh sách sản phẩm Admin có tìm kiếm, lọc, sắp xếp, phân trang.
+- [ ] **Giai đoạn 2 — Quản lý Tồn kho:** Phiếu nhập Master–Detail cập nhật tồn kho + `stock_logs`; `StockService` (Xuất kho, Điều chỉnh kiểm kê có khóa dòng `SELECT ... FOR UPDATE`), Lịch sử biến động kho.
+- [ ] **Giai đoạn 3 — Storefront:** Trang chủ bất đối xứng, Danh sách sản phẩm + Bộ lọc đa tiêu chí AJAX + Chip bộ lọc + Đồng bộ URL (`pushState` / `popstate`), Chi tiết sản phẩm + Sản phẩm liên quan.
+- [ ] **Giai đoạn 4 — So sánh, Đã xem gần đây & AJAX phía Admin (+1 điểm):** So sánh 2–3 sản phẩm (`api/compare`), Đã xem gần đây (tối đa 8 sản phẩm), Sửa nhanh tại bảng (`api/admin/product-inline`), Ẩn/Xóa bằng AJAX.
+- [ ] **Giai đoạn 5 — Xuất CSV, Nhóm B, Kiểm thử & Hoàn thiện báo cáo.**

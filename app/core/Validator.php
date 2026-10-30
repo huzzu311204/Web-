@@ -3,8 +3,6 @@ declare(strict_types=1);
 
 namespace App\Core;
 
-use DateTimeImmutable;
-
 class Validator
 {
     public static function isValidVietnamPhone(string $phone): bool
@@ -15,44 +13,48 @@ class Validator
 
     public static function isValidEmail(string $email): bool
     {
-        if (trim($email) === '') {
+        $trimmed = trim($email);
+        if ($trimmed === '') {
             return true;
         }
-        return filter_var(trim($email), FILTER_VALIDATE_EMAIL) !== false;
+        return mb_strlen($trimmed, 'UTF-8') <= 100
+            && filter_var($trimmed, FILTER_VALIDATE_EMAIL) !== false;
     }
 
-    public static function validateDateRange(string $startDate, string $endDate, bool $allowPastStart = false): array
+    public static function isValidLength(string $value, int $maxLength, int $minLength = 0): bool
     {
-        $start = DateTimeImmutable::createFromFormat('Y-m-d', $startDate);
-        $end   = DateTimeImmutable::createFromFormat('Y-m-d', $endDate);
+        $len = mb_strlen(trim($value), 'UTF-8');
+        return $len >= $minLength && $len <= $maxLength;
+    }
 
-        if (!$start || $start->format('Y-m-d') !== $startDate) {
-            return ['ok' => false, 'message' => 'Ngày bắt đầu thuê không hợp lệ.', 'days' => 0];
+    public static function isNonNegativeInt(mixed $value): bool
+    {
+        if (is_int($value)) {
+            return $value >= 0;
         }
-        if (!$end || $end->format('Y-m-d') !== $endDate) {
-            return ['ok' => false, 'message' => 'Ngày kết thúc thuê không hợp lệ.', 'days' => 0];
+        if (!is_string($value) && !is_numeric($value)) {
+            return false;
         }
+        $str = trim((string) $value);
+        return (bool) preg_match('/^\d+$/', $str);
+    }
 
-        $today = new DateTimeImmutable('today');
-        if (!$allowPastStart && $start < $today) {
-            return ['ok' => false, 'message' => 'Ngày bắt đầu thuê không được nằm trong quá khứ.', 'days' => 0];
-        }
-
-        if ($end < $start) {
-            return ['ok' => false, 'message' => 'Ngày kết thúc không được trước ngày bắt đầu.', 'days' => 0];
-        }
-
-        $days = (int) $start->diff($end)->days + 1;
-        if ($days < 1 || $days > 30) {
-            return ['ok' => false, 'message' => 'Thời gian thuê của một đơn phải từ 1 đến tối đa 30 ngày.', 'days' => $days];
-        }
-
-        return ['ok' => true, 'message' => '', 'days' => $days];
+    public static function isPositiveInt(mixed $value): bool
+    {
+        return self::isNonNegativeInt($value) && (int) $value > 0;
     }
 
     public static function sanitizeSort(string $sort, array $allowed, string $default): string
     {
         return in_array($sort, $allowed, true) ? $sort : $default;
     }
-}
 
+    public static function clampInt(mixed $value, int $min, int $max, int $default): int
+    {
+        if (!is_numeric($value)) {
+            return $default;
+        }
+        $intVal = (int) $value;
+        return max($min, min($max, $intVal));
+    }
+}
