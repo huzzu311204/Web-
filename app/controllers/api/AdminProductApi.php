@@ -198,7 +198,7 @@ class AdminProductApi
                 ]);
             }
 
-            // Chưa phát sinh dữ liệu -> Xóa hẳn và dọn ảnh upload (TC06); bắt PDOException nếu phát sinh khóa ngoại đồng thời
+            // Chưa phát sinh dữ liệu -> Xóa hẳn và dọn ảnh upload (TC06); chỉ bắt mã lỗi khóa ngoại 23000
             try {
                 $productModel->hardDelete($id);
                 ImageUploader::deleteOldImage($product['image'] ?? null);
@@ -209,6 +209,9 @@ class AdminProductApi
                     'message'     => 'Đã xóa vĩnh viễn sản phẩm "' . $product['name'] . '".',
                 ]);
             } catch (PDOException $e) {
+                if ((string) $e->getCode() !== '23000') {
+                    throw $e;
+                }
                 $productModel->setStatus($id, 'INACTIVE');
                 $qty = (int) $product['quantity'];
                 $min = (int) $product['min_stock'];
