@@ -278,9 +278,17 @@ $actionUrl = $isEdit
                 <h2 class="h5 mb-3">Ảnh sản phẩm (Tỷ lệ 4:3)</h2>
 
                 <?php if (!empty($old['image'])): ?>
-                    <div class="product-card-img-wrap rounded border border-secondary mb-3">
+                    <div class="product-card-img-wrap rounded border border-secondary mb-2">
                         <img src="<?= Response::e(UiHelper::imageUrl((string) $old['image'])) ?>" alt="Ảnh hiện tại">
                     </div>
+                    <?php if ($isEdit): ?>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" name="remove_image" value="1" id="remove_image">
+                            <label class="form-check-label small text-muted" for="remove_image">
+                                Xóa ảnh hiện tại (trở về ảnh mặc định)
+                            </label>
+                        </div>
+                    <?php endif; ?>
                 <?php endif; ?>
 
                 <div>

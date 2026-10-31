@@ -137,6 +137,8 @@ class ProductController
             $old['image'] = $product['image'];
 
             $newImage = null;
+            $removeCurrentImage = !empty($_POST['remove_image']) && $_POST['remove_image'] === '1';
+
             if (empty($errors) && !empty($_FILES['image']['name'])) {
                 try {
                     $newImage = ImageUploader::uploadProductImage($_FILES['image']);
@@ -144,12 +146,14 @@ class ProductController
                 } catch (RuntimeException $e) {
                     $errors['image'] = $e->getMessage();
                 }
+            } elseif ($removeCurrentImage) {
+                $old['image'] = null;
             }
 
             if (empty($errors)) {
                 try {
                     $productModel->updateWithSpecs($id, $old, $specs);
-                    if ($newImage !== null) {
+                    if ($newImage !== null || $removeCurrentImage) {
                         ImageUploader::deleteOldImage($product['image'] ?? null);
                     }
                     Response::setFlash('success', 'Đã cập nhật sản phẩm: ' . $old['name']);

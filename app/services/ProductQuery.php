@@ -142,11 +142,12 @@ class ProductQuery
             }
         }
 
-        // Tìm kiếm theo tên hoặc mã SKU
+        // Tìm kiếm theo tên hoặc mã SKU (escape ký tự đại diện % và _ - P0-5)
         $q = trim((string) ($filters['q'] ?? ''));
         if ($q !== '') {
-            $conditions[] = '(p.name LIKE ? OR p.code LIKE ?)';
-            $like = '%' . $q . '%';
+            $escapedQ = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $q);
+            $conditions[] = "(p.name LIKE ? ESCAPE '\\\\' OR p.code LIKE ? ESCAPE '\\\\')";
+            $like = '%' . $escapedQ . '%';
             $params[] = $like;
             $params[] = $like;
         }

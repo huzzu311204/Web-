@@ -53,9 +53,9 @@ class Csrf
     }
 
     /**
-     * Chỉ cho phép chuyển hướng trong cùng host để chống Open Redirect (Mục 11 & TC28)
+     * Ưu tiên chuyển về route cố định an toàn; chỉ dùng Referer nếu khớp tuyệt đối cùng host và route hợp lệ (Mục 11 & TC28)
      */
-    public static function safeRedirectTarget(string $fallback = 'index.php'): string
+    public static function safeRedirectTarget(string $fallback = 'index.php?r=home'): string
     {
         $referer = (string) ($_SERVER['HTTP_REFERER'] ?? '');
         if ($referer === '') {
@@ -63,22 +63,30 @@ class Csrf
         }
 
         $parts = parse_url($referer);
-        if ($parts === false) {
+        if ($parts === false || empty($parts['host'])) {
             return $fallback;
         }
 
         $currentHost = strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
-        if (isset($parts['host']) && strtolower($parts['host']) !== $currentHost) {
+        $refererHost = strtolower($parts['host']) . (isset($parts['port']) ? ':' . $parts['port'] : '');
+        if ($currentHost === '' || ($refererHost !== $currentHost && strtolower($parts['host']) !== $currentHost)) {
             return $fallback;
         }
 
-        $path = $parts['path'] ?? 'index.php';
+        $path = $parts['path'] ?? '';
         $base = basename($path);
         if ($base !== 'index.php' && $base !== '') {
             return $fallback;
         }
 
-        $query = isset($parts['query']) && $parts['query'] !== '' ? '?' . $parts['query'] : '';
-        return 'index.php' . $query;
+        if (!empty($parts['query'])) {
+            parse_str($parts['query'], $qParams);
+            $r = (string) ($qParams['r'] ?? '');
+            if ($r !== '' && preg_match('/^[a-zA-Z0-9_\/-]+$/', $r)) {
+                return 'index.php?r=' . rawurlencode($r);
+            }
+        }
+
+        return $fallback;
     }
 }
