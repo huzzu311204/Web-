@@ -138,13 +138,77 @@ class Category
     }
 
     /**
-     * Lấy mảng ID bao gồm cả danh mục hiện tại và các danh mục con trực tiếp (phục vụ lọc sản phẩm theo danh mục cha)
+     * Kiểm tra xem $candidateParentId có phải là chính $categoryId hoặc là hậu duệ của $categoryId hay không (chống vòng lặp cha-con)
+     */
+    public function isDescendantOrSelf(int $categoryId, int $candidateParentId): bool
+    {
+        if ($categoryId === $candidateParentId) {
+            return true;
+        }
+
+        $visited = [$categoryId => true];
+        $currentId = $candidateParentId;
+        $depth = 0;
+        $maxDepth = 20;
+
+        while ($currentId > 0 && $depth < $maxDepth) {
+            if (isset($visited[$currentId])) {
+                return true;
+            }
+            $visited[$currentId] = true;
+
+            $stmt = $this->db->prepare('SELECT parent_id FROM categories WHERE id = :id LIMIT 1');
+            $stmt->execute(['id' => $currentId]);
+            $parentId = $stmt->fetchColumn();
+
+            if ($parentId === false || $parentId === null) {
+                break;
+            }
+            $currentId = (int) $parentId;
+            $depth++;
+        }
+
+        return false;
+    }
+
+    /**
+     * Lấy mảng ID bao gồm cả danh mục hiện tại và mọi danh mục con/cháu (dùng tập visited chống vòng lặp vô hạn)
      */
     public function getCategoryAndChildrenIds(int $categoryId): array
     {
-        $stmt = $this->db->prepare('SELECT id FROM categories WHERE id = :id OR parent_id = :parent_id');
-        $stmt->execute(['id' => $categoryId, 'parent_id' => $categoryId]);
-        return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+        $visited = [];
+        $queue = [$categoryId];
+        $depth = 0;
+        $maxDepth = 10;
+
+        while (!empty($queue) && $depth < $maxDepth) {
+            $currentBatch = [];
+            foreach ($queue as $id) {
+                if (!isset($visited[$id])) {
+                    $visited[$id] = true;
+                    $currentBatch[] = $id;
+                }
+            }
+
+            if (empty($currentBatch)) {
+                break;
+            }
+
+            $placeholders = implode(',', array_fill(0, count($currentBatch), '?'));
+            $stmt = $this->db->prepare("SELECT id FROM categories WHERE parent_id IN ($placeholders)");
+            $stmt->execute($currentBatch);
+            $children = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+
+            $queue = [];
+            foreach ($children as $childId) {
+                if (!isset($visited[$childId])) {
+                    $queue[] = $childId;
+                }
+            }
+            $depth++;
+        }
+
+        return array_keys($visited);
     }
 }
 

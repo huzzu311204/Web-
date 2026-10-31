@@ -55,6 +55,12 @@ class CategoryController
                 $parent = $categoryModel->findById($parentId);
                 if (!$parent) {
                     $errors['parent_id'] = 'Danh mục cha đã chọn không tồn tại.';
+                } elseif ($id !== null && $categoryModel->isDescendantOrSelf($id, $parentId)) {
+                    $errors['parent_id'] = 'Không thể chọn danh mục con của chính danh mục này làm danh mục cha (vòng lặp phân cấp).';
+                } elseif ($parent['parent_id'] !== null) {
+                    $errors['parent_id'] = 'Hệ thống chỉ hỗ trợ cây danh mục tối đa 2 cấp (Cha -> Con).';
+                } elseif ($id !== null && $categoryModel->hasChildren($id)) {
+                    $errors['parent_id'] = 'Danh mục này đang có danh mục con trực thuộc nên không thể chuyển thành danh mục cấp con.';
                 }
             }
         }
