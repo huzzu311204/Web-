@@ -1,0 +1,9 @@
+# Thống nhất kiểu xuống dòng LF cho mọi file văn bản (tránh diff CRLF trên Windows)
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.gif binary
+*.zip binary
