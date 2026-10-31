@@ -1,7 +1,12 @@
 <?php
 declare(strict_types=1);
 
-// Chuyển tiếp về public/index.php nếu người dùng truy cập http://localhost/camera-rental/
-chdir(__DIR__ . '/public');
-require __DIR__ . '/public/index.php';
+// Chuyển hướng sang public/index.php để các đường dẫn tương đối (css/, js/, images/, uploads/) hoạt động đúng
+$query = isset($_SERVER['QUERY_STRING']) && $_SERVER['QUERY_STRING'] !== ''
+    ? '?' . $_SERVER['QUERY_STRING']
+    : '';
+
+header('Location: public/index.php' . $query);
+exit;
+
 
