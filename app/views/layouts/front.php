@@ -93,6 +93,25 @@ $flashes = Response::getFlashes();
         <?= $content ?>
     </main>
 
+    <!-- Thanh so sánh cố định cuối màn hình (Mục 7 - GĐ4, tối đa 3 sản phẩm) -->
+    <?php if ($currentRoute !== 'compare'): ?>
+        <div id="compare-sticky-bar" class="compare-bar-fixed d-none" role="region" aria-label="Thanh so sánh sản phẩm">
+            <div class="container-studio d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2">
+                <div class="d-flex flex-wrap align-items-center gap-2" id="compare-bar-items"></div>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" id="btn-compare-bar-clear" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-trash" aria-hidden="true"></i>
+                        <span>Xóa hết</span>
+                    </button>
+                    <a href="index.php?r=compare" class="btn btn-primary btn-sm">
+                        <i class="bi bi-columns-gap" aria-hidden="true"></i>
+                        <span>So sánh ngay (<span id="compare-bar-count" class="num">0</span>/3)</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
+
     <!-- Toast Container cho AJAX -->
     <div id="studio-toast-container" class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1090;" aria-live="polite" aria-atomic="true"></div>
 
