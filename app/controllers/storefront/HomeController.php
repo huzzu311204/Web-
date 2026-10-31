@@ -50,8 +50,8 @@ class HomeController
             unset($item);
         }
 
-        // Sản phẩm đã xem gần đây từ session (tối đa 8 sản phẩm - Mục 5.1 - K4)
-        $recentIds = $_SESSION['recently_viewed'] ?? [];
+        // Sản phẩm đã xem gần đây từ session (tối đa 8 sản phẩm - Mục 7 GĐ3)
+        $recentIds = $_SESSION['recent_viewed'] ?? [];
         $recentProducts = [];
         if (!empty($recentIds) && is_array($recentIds)) {
             $ph = implode(',', array_fill(0, count($recentIds), '?'));
