@@ -9,6 +9,7 @@ use App\Core\Validator;
 use App\Models\Product;
 use App\Services\ImageUploader;
 use App\Services\ProductQuery;
+use PDOException;
 
 class AdminProductApi
 {
@@ -197,15 +198,30 @@ class AdminProductApi
                 ]);
             }
 
-            // Chưa phát sinh dữ liệu -> Xóa hẳn và dọn ảnh upload (TC06)
-            ImageUploader::deleteOldImage($product['image'] ?? null);
-            $productModel->hardDelete($id);
+            // Chưa phát sinh dữ liệu -> Xóa hẳn và dọn ảnh upload (TC06); bắt PDOException nếu phát sinh khóa ngoại đồng thời
+            try {
+                $productModel->hardDelete($id);
+                ImageUploader::deleteOldImage($product['image'] ?? null);
 
-            Response::json([
-                'ok'          => true,
-                'action_done' => 'hard_deleted',
-                'message'     => 'Đã xóa vĩnh viễn sản phẩm "' . $product['name'] . '".',
-            ]);
+                Response::json([
+                    'ok'          => true,
+                    'action_done' => 'hard_deleted',
+                    'message'     => 'Đã xóa vĩnh viễn sản phẩm "' . $product['name'] . '".',
+                ]);
+            } catch (PDOException $e) {
+                $productModel->setStatus($id, 'INACTIVE');
+                $qty = (int) $product['quantity'];
+                $min = (int) $product['min_stock'];
+
+                Response::json([
+                    'ok'               => true,
+                    'action_done'      => 'soft_deleted',
+                    'status'           => 'INACTIVE',
+                    'stock_badge_html' => UiHelper::stockBadge($qty, $min, 'INACTIVE'),
+                    'row_class'        => '',
+                    'message'          => 'Sản phẩm "' . $product['name'] . '" đã phát sinh dữ liệu liên quan nên được chuyển sang Ngừng kinh doanh (INACTIVE).',
+                ]);
+            }
         }
 
         Response::json(['ok' => false, 'message' => 'Hành động không hợp lệ.'], 400);

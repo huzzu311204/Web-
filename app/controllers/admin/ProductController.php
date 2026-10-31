@@ -15,6 +15,7 @@ use App\Services\CsvExporter;
 use App\Services\ImageUploader;
 use App\Services\ProductQuery;
 use RuntimeException;
+use Throwable;
 
 class ProductController
 {
@@ -76,9 +77,16 @@ class ProductController
 
             if (empty($errors)) {
                 $productModel = new Product();
-                $productModel->createWithSpecs($old, $specs, (int) Auth::id());
-                Response::setFlash('success', 'Đã thêm sản phẩm mới thành công: ' . $old['name'] . ' (' . $old['code'] . ')');
-                Response::redirect('index.php?r=admin/products');
+                try {
+                    $productModel->createWithSpecs($old, $specs, (int) Auth::id());
+                    Response::setFlash('success', 'Đã thêm sản phẩm mới thành công: ' . $old['name'] . ' (' . $old['code'] . ')');
+                    Response::redirect('index.php?r=admin/products');
+                } catch (Throwable $e) {
+                    if ($uploadedImage !== null) {
+                        ImageUploader::deleteOldImage($uploadedImage);
+                    }
+                    throw $e;
+                }
             }
         }
 
@@ -128,10 +136,10 @@ class ProductController
             $old['quantity'] = $product['quantity'];
             $old['image'] = $product['image'];
 
+            $newImage = null;
             if (empty($errors) && !empty($_FILES['image']['name'])) {
                 try {
                     $newImage = ImageUploader::uploadProductImage($_FILES['image']);
-                    ImageUploader::deleteOldImage($product['image'] ?? null);
                     $old['image'] = $newImage;
                 } catch (RuntimeException $e) {
                     $errors['image'] = $e->getMessage();
@@ -139,9 +147,19 @@ class ProductController
             }
 
             if (empty($errors)) {
-                $productModel->updateWithSpecs($id, $old, $specs);
-                Response::setFlash('success', 'Đã cập nhật sản phẩm: ' . $old['name']);
-                Response::redirect('index.php?r=admin/products');
+                try {
+                    $productModel->updateWithSpecs($id, $old, $specs);
+                    if ($newImage !== null) {
+                        ImageUploader::deleteOldImage($product['image'] ?? null);
+                    }
+                    Response::setFlash('success', 'Đã cập nhật sản phẩm: ' . $old['name']);
+                    Response::redirect('index.php?r=admin/products');
+                } catch (Throwable $e) {
+                    if ($newImage !== null) {
+                        ImageUploader::deleteOldImage($newImage);
+                    }
+                    throw $e;
+                }
             }
         }
 
