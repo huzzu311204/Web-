@@ -1,0 +1,13 @@
+# Chặn thực thi mã PHP hoặc script trong thư mục upload ảnh (Mục 6.7 & 11)
+<FilesMatch "\.(php|phtml|php3|php4|php5|php7|php8|phps|phar|pl|py|cgi|sh|shtml|svg)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order deny,allow
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+Options -Indexes -ExecCGI
+

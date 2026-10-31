@@ -5,7 +5,7 @@ config/database.local.php
 # Ảnh upload thử của người dùng trong quá trình chạy (giữ lại .htaccess)
 public/uploads/products/*
 !public/uploads/products/.htaccess
-uploads/
+/uploads/
 
 # File log, file tạm và hệ điều hành
 *.log
