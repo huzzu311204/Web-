@@ -231,9 +231,10 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // -------------------------------------------------------------------------
-    // 4. Modal Xuất kho / Điều chỉnh tồn kho (hiển thị tồn dự kiến sau thao tác)
+    // 4. Modal Xuất kho / Điều chỉnh tồn kho bằng AJAX (api/admin/stock-adjust - Mục 6.3)
     // -------------------------------------------------------------------------
     const stockModalEl = document.getElementById('stockAdjustModal');
+    const stockAdjustForm = document.getElementById('stock-adjust-form');
     if (stockModalEl) {
         const adjIdInput   = document.getElementById('adj-product-id');
         const adjNameEl    = document.getElementById('adj-product-name');
@@ -241,6 +242,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const adjAfterEl   = document.getElementById('adj-after-qty');
         const adjTypeSel   = document.getElementById('adj-type');
         const adjQtyInput  = document.getElementById('adj-qty');
+        const adjReasonInp = document.getElementById('adj-reason');
         const adjSubmitBtn = document.getElementById('btn-submit-stock-adjust');
         let currentStockVal = 0;
 
@@ -251,7 +253,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const after = currentStockVal + delta;
 
             adjAfterEl.textContent = String(after);
-            if (after < 0) {
+            if (after < 0 || qty <= 0) {
                 adjAfterEl.style.color = '#f87171';
                 adjQtyInput.classList.add('is-invalid');
                 if (adjSubmitBtn) adjSubmitBtn.disabled = true;
@@ -271,12 +273,87 @@ document.addEventListener('DOMContentLoaded', function () {
             adjCurrentEl.textContent = String(currentStockVal);
             adjTypeSel.value = currentStockVal > 0 ? 'EXPORT' : 'ADJUSTMENT_ADD';
             adjQtyInput.value = '1';
-            document.getElementById('adj-reason').value = '';
+            if (adjReasonInp) {
+                adjReasonInp.value = '';
+                adjReasonInp.classList.remove('is-invalid');
+            }
             updateProjectedStock();
         });
 
         adjTypeSel.addEventListener('change', updateProjectedStock);
         adjQtyInput.addEventListener('input', updateProjectedStock);
+
+        if (stockAdjustForm) {
+            stockAdjustForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                const reasonVal = adjReasonInp ? adjReasonInp.value.trim() : '';
+                if (reasonVal === '') {
+                    if (adjReasonInp) adjReasonInp.classList.add('is-invalid');
+                    StudioUI.showToast('Vui lòng nhập lý do xuất hoặc điều chỉnh tồn kho.', 'error');
+                    return;
+                }
+                if (adjReasonInp) adjReasonInp.classList.remove('is-invalid');
+
+                StudioUI.setButtonLoading(adjSubmitBtn, true, 'Đang cập nhật...');
+                try {
+                    const body = new URLSearchParams({
+                        product_id: adjIdInput.value,
+                        type: adjTypeSel.value,
+                        quantity: adjQtyInput.value,
+                        reason: reasonVal
+                    });
+
+                    const data = await StudioUI.fetchJson('index.php?r=api/admin/stock-adjust', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: body.toString()
+                    });
+
+                    if (!data.ok) {
+                        StudioUI.showToast(data.message || 'Không thể cập nhật tồn kho.', 'error');
+                        return;
+                    }
+
+                    const pid = data.product_id;
+                    const qtyCell = document.getElementById(`product-qty-${pid}`);
+                    if (qtyCell) {
+                        qtyCell.textContent = String(data.quantity_after);
+                    }
+
+                    const badgeCell = document.getElementById(`product-stock-badge-${pid}`);
+                    if (badgeCell && data.stock_badge_html) {
+                        badgeCell.innerHTML = data.stock_badge_html;
+                    }
+
+                    const row = document.getElementById(`product-row-${pid}`);
+                    if (row) {
+                        row.className = data.row_class || '';
+                        const modalTriggerBtn = row.querySelector('.btn-open-stock-modal');
+                        if (modalTriggerBtn) {
+                            modalTriggerBtn.setAttribute('data-qty', String(data.quantity_after));
+                        }
+                    }
+
+                    // Cập nhật badge cảnh báo trên Sidebar Admin
+                    document.querySelectorAll('.sidebar-alert-badge').forEach(function (badgeEl) {
+                        if (typeof data.low_or_out_count === 'number') {
+                            badgeEl.textContent = String(data.low_or_out_count);
+                            badgeEl.style.display = data.low_or_out_count > 0 ? '' : 'none';
+                        }
+                    });
+
+                    const modalInstance = window.bootstrap.Modal.getInstance(stockModalEl);
+                    if (modalInstance) modalInstance.hide();
+
+                    StudioUI.showToast(data.message, 'success');
+                } catch (err) {
+                    StudioUI.showToast('Lỗi kết nối khi điều chỉnh tồn kho.', 'error');
+                } finally {
+                    StudioUI.setButtonLoading(adjSubmitBtn, false);
+                }
+            });
+        }
     }
 
     // -------------------------------------------------------------------------

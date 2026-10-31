@@ -1,6 +1,6 @@
 /* ==========================================================================
-   PRINT.CSS — Bản in phiếu thuê thiết bị A4 (Mục 4.2 & 6)
-   Nền trắng, chữ đen, ẩn các phần tử điều hướng và nút bấm
+   PRINT.CSS — Bản in phiếu nhập kho A4 (Mục 6.3 & MASTER.md)
+   Nền trắng, chữ đen, dùng duy nhất font Be Vietnam Pro + tabular-nums
    ========================================================================== */
 
 body.print-body {
@@ -45,8 +45,9 @@ body.print-body {
 .print-sheet .num,
 .print-sheet .price,
 .print-sheet .code {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
   font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
   color: #111111 !important;
 }
 
