@@ -45,6 +45,27 @@ class CompareApi
             Response::json(['ok' => false, 'message' => 'Sản phẩm không hợp lệ.'], 422);
         }
 
+        // Gỡ sản phẩm luôn được phép, kể cả khi sản phẩm đã ngừng kinh doanh hoặc bị xóa
+        // (getValidCompareIds() đã loại các ID không còn ACTIVE; thao tác này chỉ cần idempotent).
+        if ($action === 'remove') {
+            $idx = array_search($productId, $compareIds, true);
+            if ($idx !== false) {
+                unset($compareIds[$idx]);
+                $compareIds = array_values($compareIds);
+            }
+            $_SESSION['compare_ids'] = $compareIds;
+            $items = $this->fetchCompareProducts($compareIds);
+
+            Response::json([
+                'ok'         => true,
+                'action'     => 'removed',
+                'in_compare' => false,
+                'count'      => count($items),
+                'items'      => $items,
+                'message'    => 'Đã gỡ thiết bị khỏi danh sách so sánh.',
+            ]);
+        }
+
         $db = Database::getConnection();
         $stmt = $db->prepare("SELECT id, code, name, price, image, status FROM products WHERE id = :id AND status = 'ACTIVE' LIMIT 1");
         $stmt->execute(['id' => $productId]);
