@@ -199,8 +199,8 @@ class CatalogController
             }
         }
 
-        if (isset($filters['min_price']) && $filters['min_price'] !== '' && is_numeric($filters['min_price'])) {
-            $minP = max(0, (int) $filters['min_price']);
+        [$minP, $maxP] = ProductQuery::normalizePriceRange($filters);
+        if ($minP !== null) {
             $chips[] = [
                 'type'  => 'min_price',
                 'value' => '',
@@ -208,8 +208,7 @@ class CatalogController
             ];
         }
 
-        if (isset($filters['max_price']) && $filters['max_price'] !== '' && is_numeric($filters['max_price'])) {
-            $maxP = max(0, (int) $filters['max_price']);
+        if ($maxP !== null) {
             $chips[] = [
                 'type'  => 'max_price',
                 'value' => '',

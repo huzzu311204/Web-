@@ -190,14 +190,13 @@ class ProductQuery
             $params = array_merge($params, $brandIds);
         }
 
-        // Lọc khoảng giá (Mục 5.1 - K1)
-        if (isset($filters['min_price']) && $filters['min_price'] !== '' && is_numeric($filters['min_price'])) {
-            $minPrice = max(0, (int) $filters['min_price']);
+        // Lọc khoảng giá (Mục 5.1 - K1: chỉ nhận chuỗi chữ số <= 12 ký tự và tự hoán đổi nếu min > max)
+        [$minPrice, $maxPrice] = self::normalizePriceRange($filters);
+        if ($minPrice !== null) {
             $conditions[] = 'p.price >= ?';
             $params[] = $minPrice;
         }
-        if (isset($filters['max_price']) && $filters['max_price'] !== '' && is_numeric($filters['max_price'])) {
-            $maxPrice = max(0, (int) $filters['max_price']);
+        if ($maxPrice !== null) {
             $conditions[] = 'p.price <= ?';
             $params[] = $maxPrice;
         }
@@ -217,6 +216,26 @@ class ProductQuery
 
         $whereSql = empty($conditions) ? '' : 'WHERE ' . implode(' AND ', $conditions);
         return [$whereSql, $params];
+    }
+
+    /**
+     * Chỉ nhận chuỗi toàn chữ số (ctype_digit) có độ dài <= 12 và tự động hoán đổi nếu min_price > max_price
+     *
+     * @return array{0: ?int, 1: ?int}
+     */
+    public static function normalizePriceRange(array $filters): array
+    {
+        $minRaw = trim((string) ($filters['min_price'] ?? ''));
+        $maxRaw = trim((string) ($filters['max_price'] ?? ''));
+
+        $minPrice = ($minRaw !== '' && strlen($minRaw) <= 12 && ctype_digit($minRaw)) ? (int) $minRaw : null;
+        $maxPrice = ($maxRaw !== '' && strlen($maxRaw) <= 12 && ctype_digit($maxRaw)) ? (int) $maxRaw : null;
+
+        if ($minPrice !== null && $maxPrice !== null && $minPrice > $maxPrice) {
+            [$minPrice, $maxPrice] = [$maxPrice, $minPrice];
+        }
+
+        return [$minPrice, $maxPrice];
     }
 }
 
