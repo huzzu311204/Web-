@@ -35,8 +35,8 @@ class StockService
             throw new DomainException('Loại giao dịch kho không hợp lệ.');
         }
 
-        if ($delta === 0) {
-            throw new DomainException('Số lượng thay đổi phải khác 0.');
+        if ($delta === 0 || abs($delta) > 100000) {
+            throw new DomainException('Số lượng thay đổi phải khác 0 và không vượt quá 100.000.');
         }
 
         if ($type === 'EXPORT' && $delta > 0) {
@@ -140,6 +140,9 @@ class StockService
         $dt = \DateTimeImmutable::createFromFormat('Y-m-d', $importDate);
         if (!$dt || $dt->format('Y-m-d') !== $importDate) {
             throw new DomainException('Ngày nhập kho không hợp lệ (định dạng chuẩn YYYY-MM-DD).');
+        }
+        if ($importDate > date('Y-m-d')) {
+            throw new DomainException('Ngày nhập kho không được lớn hơn ngày hiện tại (' . date('d/m/Y') . ').');
         }
 
         $note = $note !== null ? trim($note) : null;
