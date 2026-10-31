@@ -11,9 +11,9 @@ use App\Models\User;
 class AuthController
 {
     /**
-     * Dummy bcrypt hash dùng để luôn gọi password_verify khi không tìm thấy user (chống dò tên tài khoản - Mục 11)
+     * Dummy bcrypt hash sinh ngẫu nhiên riêng biệt để luôn gọi password_verify khi không tìm thấy user (chống dò tên tài khoản - Mục 11)
      */
-    private const DUMMY_HASH = '$2y$10$k5lyE5PkAkOgRqu4DkrLQ.fkyjuKraN8cSH8ddpUgM3/IrVMCEL/m';
+    private const DUMMY_HASH = '$2y$10$8y/jRv.vu.q.jE6zc03E2.UvSagj3xbN8DJc3hSRNDLcKBHqqZEN.';
     private const MAX_ATTEMPTS = 5;
     private const LOCKOUT_SECONDS = 120;
 

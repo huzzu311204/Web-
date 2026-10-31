@@ -171,7 +171,7 @@ CREATE TABLE stock_logs (
 -- DỮ LIỆU MẪU (SEED DATA)
 -- =============================================================================
 
--- 1. Tài khoản Admin duy nhất (Mật khẩu: ProGear@2026! - đã tạo mới và xác minh bằng password_verify)
+-- 1. Tài khoản Admin duy nhất (đã tạo mới bằng password_hash và xác minh bằng password_verify; lưu ý đổi mật khẩu sau khi cài đặt)
 INSERT INTO users (id, username, password, full_name, email, role, status) VALUES
 (1, 'admin', '$2y$10$k5lyE5PkAkOgRqu4DkrLQ.fkyjuKraN8cSH8ddpUgM3/IrVMCEL/m', 'Nguyễn Quản Trị (Admin)', 'admin@progear.vn', 'ADMIN', 'ACTIVE');
 

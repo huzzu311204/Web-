@@ -41,7 +41,7 @@ Giai đoạn 0 thực hiện đầy đủ **Phụ lục A** và **Mục 11 (Bả
   9. `stock_logs` *(bảng mới)*: `id`, `product_id`, `user_id`, `type` (`IMPORT`, `EXPORT`, `ADJUSTMENT`), `change_qty`, `quantity_before`, `quantity_after`, `reason`, `receipt_id`, `created_at`. Có index `idx_stock_logs_product_date (product_id, created_at)`.
 
 - **Dữ liệu mẫu (`SEED DATA` — Đã nạp vào MySQL với chuẩn `utf8mb4`):**
-  - Tài khoản Admin duy nhất: `admin` / mật khẩu `ProGear@2026!` (sử dụng bcrypt hash tạo riêng, đã kiểm tra bằng `password_verify()`).
+  - Tài khoản Admin duy nhất: `admin` (sử dụng bcrypt hash tạo riêng, đã kiểm tra bằng `password_verify()`; đổi mật khẩu admin ngay sau khi cài đặt).
   - 28 sản phẩm thiết bị nhiếp ảnh thật trải đều 6 danh mục, bao gồm đủ 4 trạng thái để demo:
     - **Hết hàng (`quantity = 0`):** Canon EOS R5 (`id = 5`), Canon RF 50mm f/1.2L (`id = 16`).
     - **Sắp hết (`0 < quantity <= min_stock`):** Sony Alpha A7 Mark IV (`id = 2`, tồn 2 / ngưỡng 2), Sony FE 70-200mm GM (`id = 12`, tồn 1 / ngưỡng 2), Gimbal DJI RS 3 Pro (`id = 24`, tồn 1 / ngưỡng 2).
