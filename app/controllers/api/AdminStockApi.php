@@ -27,7 +27,7 @@ class AdminStockApi
         }
 
         if (!Validator::isPositiveInt($qtyRaw) || (int) $qtyRaw > 100000) {
-            Response::json(['ok' => false, 'message' => 'Số lượng thực hiện phải là số nguyên dương (≥ 1).'], 422);
+            Response::json(['ok' => false, 'message' => 'Số lượng thực hiện phải là số nguyên dương (từ 1 đến 100.000).'], 422);
         }
 
         $qty = (int) $qtyRaw;
@@ -40,11 +40,8 @@ class AdminStockApi
         } elseif ($rawType === 'ADJUSTMENT_SUB') {
             $type  = 'ADJUSTMENT';
             $delta = -$qty;
-        } elseif ($rawType === 'ADJUSTMENT') {
-            $type  = 'ADJUSTMENT';
-            $delta = (int) ($_POST['delta'] ?? $qty);
         } else {
-            Response::json(['ok' => false, 'message' => 'Loại nghiệp vụ kho không hợp lệ.'], 422);
+            Response::json(['ok' => false, 'message' => 'Loại nghiệp vụ kho không hợp lệ. Chỉ chấp nhận EXPORT, ADJUSTMENT_ADD hoặc ADJUSTMENT_SUB.'], 422);
         }
 
         try {
