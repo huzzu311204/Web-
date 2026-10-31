@@ -78,7 +78,23 @@ window.StudioUI = (function () {
         }, options.headers || {});
 
         const response = await fetch(url, Object.assign({}, options, { headers }));
-        const data = await response.json();
+
+        let data;
+        try {
+            data = await response.json();
+        } catch (parseErr) {
+            // Máy chủ trả về nội dung không phải JSON (lỗi 500, trang HTML...) -> trả về thông báo chung
+            return { ok: false, message: 'Máy chủ phản hồi không hợp lệ (mã ' + response.status + '). Vui lòng thử lại.' };
+        }
+
+        // Phiên đăng nhập Admin hết hạn / bị khóa khi đang thao tác AJAX (TC27, TC30)
+        if (response.status === 401) {
+            showToast((data && data.message) || 'Phiên đăng nhập đã hết hạn. Đang chuyển về trang đăng nhập...', 'error');
+            setTimeout(function () {
+                window.location.href = 'index.php?r=admin/login';
+            }, 1500);
+        }
+
         return data;
     }
 

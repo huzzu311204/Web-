@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const pageInput = document.getElementById('admin-filter-page');
 
     let filterTimer = null;
+    let loadSeq = 0; // Bỏ qua phản hồi cũ đến muộn khi người dùng gõ/lọc liên tục
 
     function syncExportCsvLink() {
         if (!filterForm || !exportCsvBtn) return;
@@ -40,10 +41,12 @@ document.addEventListener('DOMContentLoaded', function () {
         const fd = new FormData(filterForm);
         fd.delete('r');
         const qs = new URLSearchParams(fd).toString();
+        const mySeq = ++loadSeq;
 
         if (region) region.classList.add('is-loading');
         try {
             const data = await StudioUI.fetchJson(`index.php?r=api/admin/products&${qs}`);
+            if (mySeq !== loadSeq) return;
             if (!data.ok) {
                 StudioUI.showToast(data.message || 'Không thể tải danh sách sản phẩm.', 'error');
                 return;
@@ -56,9 +59,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 window.history.replaceState(null, '', `index.php?r=admin/products&${qs}`);
             }
         } catch (err) {
+            if (mySeq !== loadSeq) return;
             StudioUI.showToast('Lỗi kết nối khi lọc danh sách sản phẩm.', 'error');
         } finally {
-            if (region) region.classList.remove('is-loading');
+            if (mySeq === loadSeq && region) region.classList.remove('is-loading');
         }
     }
 
@@ -162,6 +166,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 row.className = data.row_class || '';
                 StudioUI.showToast(data.message, 'success');
             } catch (err) {
+                // Mất kết nối: khôi phục giá trị cũ để hiển thị khớp dữ liệu thật (TC21)
+                if (priceInput) priceInput.value = priceInput.getAttribute('data-original');
+                if (minInput) minInput.value = minInput.getAttribute('data-original');
+                if (statusSel) statusSel.value = statusSel.getAttribute('data-original');
                 StudioUI.showToast('Không thể lưu thay đổi nhanh.', 'error');
             } finally {
                 StudioUI.setButtonLoading(saveBtn, false);
